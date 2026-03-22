@@ -19,11 +19,29 @@ class VisitedRepository @Inject constructor(
         get() = firestore.collection("users").document(userId).collection("visited_artworks")
 
     suspend fun addVisit(artwork: VisitedArtwork) {
-        visitedCollection.document(artwork.id.toString()).set(artwork).await()
+        visitedCollection.document(artwork.id.toString()).set(artwork.copy(userId = userId)).await()
     }
 
-    suspend fun removeVisit(artworkId: Int) {
-        visitedCollection.document(artworkId.toString()).delete().await()
+    suspend fun setVisitedStatus(artworkId: Int, isVisited: Boolean) {
+        val doc = visitedCollection.document(artworkId.toString()).get().await()
+        if (doc.exists()) {
+            visitedCollection.document(artworkId.toString()).update("isVisited", isVisited).await()
+        }
+    }
+
+    suspend fun removeVisitIfNoPhotos(artworkId: Int) {
+        val visit = getVisitById(artworkId)
+        if (visit != null && visit.imageUrls.isEmpty() && !visit.isVisited) {
+            visitedCollection.document(artworkId.toString()).delete().await()
+        }
+    }
+
+    suspend fun getPublicVisitsForArtwork(artworkId: Int): List<VisitedArtwork> {
+        return firestore.collectionGroup("visited_artworks")
+            .whereEqualTo("id", artworkId)
+            .get()
+            .await()
+            .toObjects(VisitedArtwork::class.java)
     }
 
     suspend fun getVisits(): List<VisitedArtwork> {
@@ -32,9 +50,22 @@ class VisitedRepository @Inject constructor(
 
     suspend fun isVisited(artworkId: Int): Boolean {
         return try {
-            visitedCollection.document(artworkId.toString()).get().await().exists()
+            val doc = visitedCollection.document(artworkId.toString()).get().await()
+            doc.exists() && doc.getBoolean("isVisited") == true
         } catch (e: Exception) {
             false
         }
+    }
+
+    suspend fun getVisitById(artworkId: Int): VisitedArtwork? {
+        return try {
+            visitedCollection.document(artworkId.toString()).get().await().toObject(VisitedArtwork::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun updateVisitPhotos(artworkId: Int, urls: List<String>) {
+        visitedCollection.document(artworkId.toString()).update("imageUrls", urls).await()
     }
 }

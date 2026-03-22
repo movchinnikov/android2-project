@@ -2,6 +2,8 @@ package com.artfinder.ui.profile
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,6 +16,7 @@ fun ProfileScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToEditName: () -> Unit,
     onNavigateToChangePassword: () -> Unit,
+    onNavigateToLeaderboard: () -> Unit,
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -54,6 +57,18 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("Badge: ${profile.badge} ${getBadgeEmoji(profile.badge)}", style = MaterialTheme.typography.headlineSmall)
                     }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = onNavigateToLeaderboard,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                ) {
+                    Icon(Icons.Default.Star, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("View Global Leaderboard")
                 }
                 
                 Spacer(modifier = Modifier.weight(1f))

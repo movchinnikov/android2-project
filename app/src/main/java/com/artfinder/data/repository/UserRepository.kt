@@ -34,13 +34,19 @@ class UserRepository @Inject constructor(
             .await()
     }
 
-    suspend fun updatePoints(newPoints: Int, newBadge: String) {
+    suspend fun updatePoints(newPoints: Int) {
         val uid = auth.currentUser?.uid ?: return
+        val badge = when {
+            newPoints > 250 -> "Archivist"
+            newPoints > 100 -> "Curator"
+            else -> "Explorer"
+        }
+        
         firestore.collection("users")
             .document(uid)
             .update(mapOf(
                 "points" to newPoints,
-                "badge" to newBadge
+                "badge" to badge
             ))
             .await()
     }
@@ -51,5 +57,16 @@ class UserRepository @Inject constructor(
             .document(uid)
             .update("name", name)
             .await()
+    }
+
+    suspend fun getAllUsers(): List<UserProfile> {
+        return try {
+            firestore.collection("users")
+                .get()
+                .await()
+                .toObjects(UserProfile::class.java)
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }

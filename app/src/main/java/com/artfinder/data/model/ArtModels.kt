@@ -55,7 +55,11 @@ data class VisitedArtwork(
     val visitedAt: com.google.firebase.Timestamp? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val galleryTitle: String? = null
+    val galleryTitle: String? = null,
+    val imageUrls: List<String> = emptyList(),
+    val isVisited: Boolean = true,
+    val userId: String = "",
+    val userName: String = ""
 )
 
 data class Pagination(

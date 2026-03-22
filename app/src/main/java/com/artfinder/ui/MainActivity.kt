@@ -137,8 +137,12 @@ fun ArtFinderApp() {
                         onNavigateToSettings = { navController.navigate("settings") },
                         onNavigateToEditName = { navController.navigate("edit_name") },
                         onNavigateToChangePassword = { navController.navigate("change_password") },
+                        onNavigateToLeaderboard = { navController.navigate("leaderboard") },
                         onLogout = { navController.navigate("login") { popUpTo(0) } }
                     )
+                }
+                composable("leaderboard") {
+                    com.artfinder.ui.profile.LeaderboardScreen(onBack = { navController.popBackStack() })
                 }
                 composable("settings") {
                     SettingsScreen(

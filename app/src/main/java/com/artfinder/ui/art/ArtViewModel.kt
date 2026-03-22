@@ -16,8 +16,12 @@ import javax.inject.Inject
 @HiltViewModel
 class ArtViewModel @Inject constructor(
     private val artRepository: ArtRepository,
-    private val visitedRepository: VisitedRepository
+    private val visitedRepository: VisitedRepository,
+    private val storageRepository: com.artfinder.data.repository.StorageRepository,
+    private val userRepository: com.artfinder.data.repository.UserRepository
 ) : ViewModel() {
+
+    fun getCurrentUserId(): String? = userRepository.currentUser?.uid
 
     private val _artState = MutableStateFlow<ArtState>(ArtState.Loading)
     val artState: StateFlow<ArtState> = _artState
@@ -30,6 +34,9 @@ class ArtViewModel @Inject constructor(
 
     private val _isVisited = MutableStateFlow(false)
     val isVisited: StateFlow<Boolean> = _isVisited
+
+    private val _publicVisits = MutableStateFlow<List<VisitedArtwork>>(emptyList())
+    val publicVisits: StateFlow<List<VisitedArtwork>> = _publicVisits
 
     private val _showOnlyOnView = MutableStateFlow(true)
     val showOnlyOnView: StateFlow<Boolean> = _showOnlyOnView
@@ -224,8 +231,21 @@ class ArtViewModel @Inject constructor(
                 }
                 _currentArtworkDetails.value = detailed
                 _artState.value = ArtState.Success(allArtworks.toList())
+                
+                // Load public photos
+                loadPublicPhotos(id)
             } catch (e: Exception) {
                 _artState.value = ArtState.Error(e.message ?: "Failed to load artwork details")
+            }
+        }
+    }
+
+    fun loadPublicPhotos(artworkId: Int) {
+        viewModelScope.launch {
+            try {
+                _publicVisits.value = visitedRepository.getPublicVisitsForArtwork(artworkId)
+            } catch (e: Exception) {
+                // Handle error
             }
         }
     }
@@ -233,10 +253,11 @@ class ArtViewModel @Inject constructor(
     fun toggleVisited(artwork: Artwork) {
         viewModelScope.launch {
             try {
-                if (_isVisited.value) {
-                    visitedRepository.removeVisit(artwork.id)
-                    _isVisited.value = false
-                } else {
+                val currentStatus = _isVisited.value
+                val existingVisit = visitedRepository.getVisitById(artwork.id)
+                
+                if (existingVisit == null) {
+                    val userProfile = userRepository.getUserProfile()
                     val visited = com.artfinder.data.model.VisitedArtwork(
                         id = artwork.id,
                         title = artwork.title,
@@ -245,12 +266,22 @@ class ArtViewModel @Inject constructor(
                         visitedAt = com.google.firebase.Timestamp.now(),
                         latitude = artwork.latitude,
                         longitude = artwork.longitude,
-                        galleryTitle = artwork.gallery_title
+                        galleryTitle = artwork.gallery_title,
+                        isVisited = true,
+                        userName = userProfile?.name ?: userProfile?.email?.substringBefore("@") ?: "Explorer"
                     )
                     visitedRepository.addVisit(visited)
                     _isVisited.value = true
+                } else {
+                    visitedRepository.setVisitedStatus(artwork.id, !currentStatus)
+                    _isVisited.value = !currentStatus
+                    
+                    // Clean up if not visited and no photos
+                    visitedRepository.removeVisitIfNoPhotos(artwork.id)
                 }
                 loadVisitedArtworks()
+                loadPublicPhotos(artwork.id)
+                updateUserPoints()
             } catch (e: Exception) {
                 // Handle error
             }
@@ -260,8 +291,91 @@ class ArtViewModel @Inject constructor(
     fun removeVisited(id: Int) {
         viewModelScope.launch {
             try {
-                visitedRepository.removeVisit(id)
+                visitedRepository.setVisitedStatus(id, false)
+                visitedRepository.removeVisitIfNoPhotos(id)
+                _isVisited.value = false
                 loadVisitedArtworks()
+                loadPublicPhotos(id)
+                updateUserPoints()
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
+    fun uploadVisitPhoto(artworkId: Int, uri: android.net.Uri) {
+        viewModelScope.launch {
+            try {
+                val url = storageRepository.uploadVisitPhoto(artworkId, uri)
+                var visit = visitedRepository.getVisitById(artworkId)
+                
+                if (visit == null) {
+                    // Should not happen usually if visited, but in case:
+                    val artwork = _currentArtworkDetails.value ?: return@launch
+                    val userProfile = userRepository.getUserProfile()
+                    visit = com.artfinder.data.model.VisitedArtwork(
+                        id = artwork.id,
+                        title = artwork.title,
+                        artist = artwork.artist_display,
+                        imageId = artwork.image_id,
+                        visitedAt = com.google.firebase.Timestamp.now(),
+                        latitude = artwork.latitude,
+                        longitude = artwork.longitude,
+                        galleryTitle = artwork.gallery_title,
+                        isVisited = false, // Just adding a photo doesn't mean visited checkmark is on
+                        userName = userProfile?.name ?: userProfile?.email?.substringBefore("@") ?: "Explorer"
+                    )
+                    visitedRepository.addVisit(visit)
+                }
+                
+                val updatedUrls = visit.imageUrls + url
+                visitedRepository.updateVisitPhotos(artworkId, updatedUrls)
+                loadVisitedArtworks()
+                loadPublicPhotos(artworkId)
+                updateUserPoints()
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
+    fun deleteVisitPhoto(artworkId: Int, url: String) {
+        viewModelScope.launch {
+            try {
+                storageRepository.deletePhoto(url)
+                val visit = visitedRepository.getVisitById(artworkId) ?: return@launch
+                val updatedUrls = visit.imageUrls - url
+                visitedRepository.updateVisitPhotos(artworkId, updatedUrls)
+                
+                // Final cleanup if untoggled and no photos left
+                visitedRepository.removeVisitIfNoPhotos(artworkId)
+                
+                loadVisitedArtworks()
+                loadPublicPhotos(artworkId)
+                updateUserPoints()
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
+    private fun updateUserPoints() {
+        viewModelScope.launch {
+            try {
+                val totalPoints = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    val visits = visitedRepository.getVisits()
+                    var points = 0
+                    visits.forEach { visit ->
+                        val photoCount = visit.imageUrls.size
+                        points += when {
+                            photoCount >= 6 -> 20
+                            photoCount >= 1 -> 10
+                            else -> 0
+                        }
+                    }
+                    points
+                }
+                userRepository.updatePoints(totalPoints)
             } catch (e: Exception) {
                 // Handle error
             }

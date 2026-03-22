@@ -23,17 +23,5 @@ object RewardManager {
      * Curator: 101–250 баллов.
      * Archivist: 251–500 баллов.
      */
-    fun getBadgeForPoints(points: Int): Badge {
-        return when {
-            points <= 100 -> Badge.EXPLORER
-            points <= 250 -> Badge.CURATOR
-            else -> Badge.ARCHIVIST
-        }
-    }
-}
-
-enum class Badge(val displayName: String, val icon: String) {
-    EXPLORER("Explorer", "🧭"),
-    CURATOR("Curator", "🎭"),
-    ARCHIVIST("Archivist", "📚")
+    fun getBadgeForPoints(points: Int): Badge = Badge.fromPoints(points)
 }

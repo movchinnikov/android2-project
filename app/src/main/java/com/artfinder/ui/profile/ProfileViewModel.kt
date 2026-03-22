@@ -23,8 +23,12 @@ class ProfileViewModel @Inject constructor(
     private val _editStatus = MutableStateFlow<EditStatus>(EditStatus.Idle)
     val editStatus: StateFlow<EditStatus> = _editStatus
 
+    private val _leaderboardState = MutableStateFlow<LeaderboardState>(LeaderboardState.Loading)
+    val leaderboardState: StateFlow<LeaderboardState> = _leaderboardState
+
     init {
         loadProfile()
+        loadLeaderboard()
     }
 
     private fun loadProfile() {
@@ -78,6 +82,47 @@ class ProfileViewModel @Inject constructor(
     fun logout() {
         authRepository.logout()
     }
+
+    fun loadLeaderboard() {
+        viewModelScope.launch {
+            _leaderboardState.value = LeaderboardState.Loading
+            try {
+                val allUsers = userRepository.getAllUsers().sortedByDescending { it.points }
+                val currentUid = userRepository.currentUser?.uid
+                
+                val rankedUsers = mutableListOf<RankedUser>()
+                var i = 0
+                while (i < allUsers.size) {
+                    val points = allUsers[i].points
+                    val group = allUsers.filter { it.points == points }
+                    val groupSize = group.size
+                    val startRank = i + 1
+                    val endRank = i + groupSize
+                    
+                    val rankDisplay = if (groupSize > 1) {
+                        "$startRank-$endRank"
+                    } else {
+                        "$startRank"
+                    }
+                    
+                    group.forEach { user ->
+                        rankedUsers.add(RankedUser(user, rankDisplay, user.id == currentUid))
+                    }
+                    i += groupSize
+                }
+                
+                val top20 = rankedUsers.take(20)
+                val currentUserRank = rankedUsers.find { it.isCurrentUser }
+                
+                _leaderboardState.value = LeaderboardState.Success(
+                    top20 = top20,
+                    currentUserRank = if (top20.none { it.isCurrentUser }) currentUserRank else null
+                )
+            } catch (e: Exception) {
+                _leaderboardState.value = LeaderboardState.Error(e.message ?: "Failed to load leaderboard")
+            }
+        }
+    }
 }
 
 sealed class ProfileState {
@@ -91,4 +136,16 @@ sealed class EditStatus {
     object Loading : EditStatus()
     object Success : EditStatus()
     data class Error(val message: String) : EditStatus()
+}
+
+data class RankedUser(
+    val user: com.artfinder.data.model.UserProfile,
+    val rankDisplay: String,
+    val isCurrentUser: Boolean
+)
+
+sealed class LeaderboardState {
+    object Loading : LeaderboardState()
+    data class Success(val top20: List<RankedUser>, val currentUserRank: RankedUser?) : LeaderboardState()
+    data class Error(val message: String) : LeaderboardState()
 }
