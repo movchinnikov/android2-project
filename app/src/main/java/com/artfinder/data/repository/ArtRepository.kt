@@ -10,15 +10,52 @@ import javax.inject.Singleton
 class ArtRepository @Inject constructor(
     private val apiService: ArtApiService
 ) {
-    suspend fun getArtworks(page: Int): ArtResponse {
-        return apiService.getArtworks(page = page)
+    suspend fun getArtworks(page: Int, isOnView: Boolean? = null): ArtResponse {
+        return apiService.getArtworks(page = page, isOnView = isOnView)
     }
 
-    suspend fun searchArtworks(query: String, page: Int): ArtResponse {
-        return apiService.searchArtworks(query = query, page = page)
+    suspend fun searchArtworks(query: String? = null, page: Int, isOnView: Boolean? = null, galleryId: Long? = null): ArtResponse {
+        var params: String? = null
+        if (galleryId != null || isOnView != null) {
+            val terms = mutableListOf<String>()
+            if (galleryId != null) terms.add("\"term\":{\"gallery_id\":$galleryId}")
+            if (isOnView != null) terms.add("\"term\":{\"is_on_view\":$isOnView}")
+            
+            params = if (terms.size == 1) {
+                "{\"query\":{${terms[0]}}}"
+            } else {
+                "{\"query\":{\"bool\":{\"must\":[{${terms.joinToString("},{")}}]}}}"
+            }
+        }
+        
+        return apiService.searchArtworks(
+            query = query,
+            params = params,
+            page = page,
+            isOnView = null, // Disable original individual params when using JSON params
+            galleryId = null
+        )
     }
 
     suspend fun getArtworkDetails(id: Int): Artwork {
         return apiService.getArtworkDetails(id).data
     }
+
+    suspend fun getGalleries(page: Int) = apiService.getGalleries(page = page)
+
+    suspend fun getActiveGalleryIds(): List<Long> {
+        val options = mapOf(
+            "aggregations[gallery_id][terms][field]" to "gallery_id",
+            "aggregations[gallery_id][terms][size]" to "500"
+        )
+        val response = apiService.searchArtworks(
+            isOnView = true,
+            page = 1,
+            limit = 0,
+            options = options
+        )
+        return response.aggregations?.gallery_id?.buckets?.map { it.key } ?: emptyList()
+    }
+
+    suspend fun getGalleryDetails(id: Long) = apiService.getGalleryDetails(id).data
 }

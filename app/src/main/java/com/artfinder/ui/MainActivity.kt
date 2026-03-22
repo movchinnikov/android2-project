@@ -4,9 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -17,6 +20,7 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import com.artfinder.ui.art.ArtDetailScreen
 import com.artfinder.ui.art.ArtListScreen
+import com.artfinder.ui.art.VisitedListScreen
 import com.artfinder.ui.auth.LoginScreen
 import com.artfinder.ui.auth.RegisterScreen
 import com.artfinder.ui.map.MapScreen
@@ -60,7 +64,7 @@ fun ArtFinderApp() {
                         NavigationBarItem(
                             icon = { Icon(Icons.Default.Menu, contentDescription = "Art") },
                             label = { Text("Art") },
-                            selected = currentRoute == "art_list",
+                            selected = currentRoute?.startsWith("art_list") == true,
                             onClick = { 
                                 navController.navigate("art_list") {
                                     popUpTo("art_list") { inclusive = true }
@@ -72,6 +76,12 @@ fun ArtFinderApp() {
                             label = { Text("Map") },
                             selected = currentRoute == "map",
                             onClick = { navController.navigate("map") }
+                        )
+                        NavigationBarItem(
+                            icon = { Icon(Icons.Default.List, contentDescription = "Visited") },
+                            label = { Text("Visited") },
+                            selected = currentRoute == "visited",
+                            onClick = { navController.navigate("visited") }
                         )
                         NavigationBarItem(
                             icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
@@ -100,11 +110,27 @@ fun ArtFinderApp() {
                         onRegisterSuccess = { navController.navigate("art_list") { popUpTo("register") { inclusive = true } } }
                     )
                 }
-                composable("art_list") {
-                    ArtListScreen(onNavigateToDetails = { id -> navController.navigate("art_detail/$id") })
+                composable(
+                    route = "art_list?galleryId={galleryId}",
+                    arguments = listOf(navArgument("galleryId") { 
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    })
+                ) { backStackEntry ->
+                    val galleryId = backStackEntry.arguments?.getLong("galleryId") ?: -1L
+                    ArtListScreen(
+                        galleryId = if (galleryId != -1L) galleryId else null,
+                        onNavigateToDetails = { id -> navController.navigate("art_detail/$id") }
+                    )
                 }
                 composable("map") {
-                    Text("Map Screen")
+                    MapScreen(
+                        onNavigateToDetail = { id -> navController.navigate("art_detail/$id") },
+                        onNavigateToGallery = { galleryId -> navController.navigate("art_list?galleryId=$galleryId") }
+                    )
+                }
+                composable("visited") {
+                    VisitedListScreen(onNavigateToDetail = { id -> navController.navigate("art_detail/$id") })
                 }
                 composable("profile") {
                     ProfileScreen(

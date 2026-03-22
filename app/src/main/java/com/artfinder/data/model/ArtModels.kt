@@ -1,8 +1,23 @@
 package com.artfinder.data.model
 
+
 data class ArtResponse(
     val data: List<Artwork>,
-    val pagination: Pagination
+    val pagination: Pagination,
+    val aggregations: Aggregations? = null
+)
+
+data class Aggregations(
+    val gallery_id: GalleryAggregation? = null
+)
+
+data class GalleryAggregation(
+    val buckets: List<GalleryBucket>? = null
+)
+
+data class GalleryBucket(
+    val key: Long,
+    val doc_count: Int
 )
 
 data class ArtDetailResponse(
@@ -22,11 +37,26 @@ data class Artwork(
     val medium_display: String? = null,
     val date_display: String? = null,
     val dimensions: String? = null,
-    val credit_line: String? = null
+    val credit_line: String? = null,
+    val gallery_id: Int? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val is_on_view: Boolean = false
 ) {
     val imageUrl: String
         get() = "https://www.artic.edu/iiif/2/$image_id/full/843,/0/default.jpg"
 }
+
+data class VisitedArtwork(
+    val id: Int = 0,
+    val title: String = "",
+    val artist: String? = null,
+    val imageId: String? = null,
+    val visitedAt: com.google.firebase.Timestamp? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val galleryTitle: String? = null
+)
 
 data class Pagination(
     val total: Int,
