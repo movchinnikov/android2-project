@@ -1,0 +1,81 @@
+# Android
+/build
+.gradle
+local.properties
+captures
+.externalNativeBuild
+.cxx
+*.apk
+*.aar
+*.jks
+*.keystore
+
+# Android Studio / IntelliJ IDEA
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/caches
+.idea/modules.xml
+.idea/navEditor.xml
+.idea/shelf
+.idea/vcs.xml
+.idea/jsLibraryMappings.xml
+.idea/inspectionProfiles
+.idea/render.experimental.xml
+.idea/compiler.xml
+.idea/modules/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse
+.metadata
+.classpath
+.project
+.settings/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.factorypath
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+Network Trash Folder
+Temporary Items
+.DocumentRevisions-V1
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Build files
+build/
+app/build/
+*.class
+*.log
+*.pyc
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# Log files
+*.log
+
+# Local configuration
+local.properties

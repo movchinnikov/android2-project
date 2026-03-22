@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "746503474237",
+    "project_id": "android-app-development-2",
+    "storage_bucket": "android-app-development-2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746503474237:android:1f259c90bd14eda88d6e54",
+        "android_client_info": {
+          "package_name": "com.artfinder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZMTZm5y6_GGCxGtWVnmE5HoPu-d36Wmk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746503474237:android:08ba2d07ddcad7928d6e54",
+        "android_client_info": {
+          "package_name": "com.humber.lab6_movchinnikov"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZMTZm5y6_GGCxGtWVnmE5HoPu-d36Wmk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
