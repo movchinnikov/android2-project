@@ -4,6 +4,7 @@ import com.artfinder.data.model.UserProfile
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import android.util.Log
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,10 +13,13 @@ class UserRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
 ) {
+    private val TAG = "ArtFinder_UserRepo"
+
     val currentUser get() = auth.currentUser
 
     suspend fun getUserProfile(): UserProfile? {
         val uid = auth.currentUser?.uid ?: return null
+        Log.d(TAG, "getUserProfile: uid=$uid")
         return try {
             firestore.collection("users")
                 .document(uid)
@@ -42,6 +46,7 @@ class UserRepository @Inject constructor(
             else -> "Explorer"
         }
         
+        Log.d(TAG, "updatePoints: points=$newPoints, badge=$badge")
         firestore.collection("users")
             .document(uid)
             .update(mapOf(
@@ -53,6 +58,7 @@ class UserRepository @Inject constructor(
 
     suspend fun updateProfileName(name: String) {
         val uid = auth.currentUser?.uid ?: return
+        Log.d(TAG, "updateProfileName: name=$name")
         firestore.collection("users")
             .document(uid)
             .update("name", name)

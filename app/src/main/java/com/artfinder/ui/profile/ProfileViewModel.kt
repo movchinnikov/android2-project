@@ -2,6 +2,7 @@ package com.artfinder.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.artfinder.data.model.UserProfile
 import com.artfinder.data.repository.AuthRepository
 import com.artfinder.data.repository.UserRepository
@@ -16,6 +17,8 @@ class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
+
+    private val TAG = "ArtFinder_ProfileVM"
 
     private val _profileState = MutableStateFlow<ProfileState>(ProfileState.Loading)
     val profileState: StateFlow<ProfileState> = _profileState
@@ -32,6 +35,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     private fun loadProfile() {
+        Log.d(TAG, "loadProfile")
         viewModelScope.launch {
             _profileState.value = ProfileState.Loading
             try {
@@ -84,6 +88,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun loadLeaderboard() {
+        Log.d(TAG, "loadLeaderboard")
         viewModelScope.launch {
             _leaderboardState.value = LeaderboardState.Loading
             try {

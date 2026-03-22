@@ -2,6 +2,7 @@ package com.artfinder.ui.art
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.artfinder.data.model.Artwork
 import com.artfinder.data.model.VisitedArtwork
 import com.artfinder.data.repository.ArtRepository
@@ -20,6 +21,8 @@ class ArtViewModel @Inject constructor(
     private val storageRepository: com.artfinder.data.repository.StorageRepository,
     private val userRepository: com.artfinder.data.repository.UserRepository
 ) : ViewModel() {
+
+    private val TAG = "ArtFinder_ArtVM"
 
     fun getCurrentUserId(): String? = userRepository.currentUser?.uid
 
@@ -197,6 +200,7 @@ class ArtViewModel @Inject constructor(
     }
 
     fun getArtDetail(id: Int) {
+        Log.d(TAG, "getArtDetail: id=$id")
         viewModelScope.launch {
             _isVisited.value = visitedRepository.isVisited(id)
             
@@ -251,6 +255,7 @@ class ArtViewModel @Inject constructor(
     }
 
     fun toggleVisited(artwork: Artwork) {
+        Log.d(TAG, "toggleVisited: id=${artwork.id}")
         viewModelScope.launch {
             try {
                 val currentStatus = _isVisited.value

@@ -3,6 +3,7 @@ package com.artfinder.data.repository
 import com.artfinder.data.api.ArtApiService
 import com.artfinder.data.model.ArtResponse
 import com.artfinder.data.model.Artwork
+import android.util.Log
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -10,7 +11,10 @@ import javax.inject.Singleton
 class ArtRepository @Inject constructor(
     private val apiService: ArtApiService
 ) {
+    private val TAG = "ArtFinder_ArtRepo"
+
     suspend fun getArtworks(page: Int, isOnView: Boolean? = null): ArtResponse {
+        Log.d(TAG, "getArtworks: page=$page, isOnView=$isOnView")
         return apiService.getArtworks(page = page, isOnView = isOnView)
     }
 
@@ -28,6 +32,7 @@ class ArtRepository @Inject constructor(
             }
         }
         
+        Log.d(TAG, "searchArtworks: query=$query, page=$page, galleryId=$galleryId, params=$params")
         return apiService.searchArtworks(
             query = query,
             params = params,
@@ -38,6 +43,7 @@ class ArtRepository @Inject constructor(
     }
 
     suspend fun getArtworkDetails(id: Int): Artwork {
+        Log.d(TAG, "getArtworkDetails: id=$id")
         return apiService.getArtworkDetails(id).data
     }
 
@@ -54,6 +60,7 @@ class ArtRepository @Inject constructor(
             limit = 0,
             options = options
         )
+        Log.d(TAG, "getActiveGalleryIds: returning ${response.aggregations?.gallery_id?.buckets?.size ?: 0} galleries")
         return response.aggregations?.gallery_id?.buckets?.map { it.key } ?: emptyList()
     }
 
