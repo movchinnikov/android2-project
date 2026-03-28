@@ -1,20 +1,38 @@
 package com.artfinder.ui
 
-import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import com.artfinder.HiltTestActivity
 import com.artfinder.ui.theme.ArtFinderTheme
+import com.artfinder.ui.auth.RegisterScreen
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import com.google.firebase.auth.FirebaseAuth
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 /**
  * UI tests for critical paths as per Milestone 4 requirements.
  */
+@HiltAndroidTest
 class NavigationTest {
 
-    @Rule
-    @JvmField
-    val composeTestRule = createComposeRule()
+    @get:Rule(order = 0)
+    var hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
+    val composeTestRule = createAndroidComposeRule<HiltTestActivity>()
+
+    @Before
+    fun setup() {
+        // Ensure we are logged out so we start on the Login screen
+        try {
+            FirebaseAuth.getInstance().signOut()
+        } catch (e: Exception) {
+            // Might fail if Firebase not initialized, but Hilt should handle it
+        }
+    }
 
     @Test
     fun login_navigates_to_register() {
@@ -27,7 +45,7 @@ class NavigationTest {
         // Check if "Register" button exists and click it
         composeTestRule.onNodeWithText("Don't have an account? Register").performClick()
 
-        // Verify we are on the Register screen
+        // Verify we are on the Register screen with the correct emoji
         composeTestRule.onNodeWithText("Join ArtFinder 🎨").assertExists()
     }
 
@@ -36,7 +54,7 @@ class NavigationTest {
         composeTestRule.setContent {
             ArtFinderTheme {
                 // Manually navigate to register for this test
-                RegisterScreen(onNavigateToLogin = {}, onRegisterSuccess = {})
+                RegisterScreen(onNavigateToLogin = { /* No-op */ }, onRegisterSuccess = { /* No-op */ })
             }
         }
 

@@ -53,7 +53,6 @@ fun MapScreen(
         if (!hasLocationPermission) {
             permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        viewModel.loadVisitedArtworks()
         viewModel.loadGalleries()
     }
 
@@ -86,7 +85,7 @@ fun MapScreen(
                 (artState as ArtState.Success).artworks.forEach { artwork ->
                     val lat = artwork.latitude ?: 41.8796
                     val lng = artwork.longitude ?: -87.6237
-                    val isVisited = visitedArtworks.any { it.id == artwork.id }
+                    val isVisited = visitedArtworks.find { it.id == artwork.id }?.isVisited == true
                     
                     Marker(
                         state = MarkerState(position = LatLng(lat, lng)),

@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -63,20 +64,45 @@ class ArtViewModel @Inject constructor(
     private var lastQuery = ""
     private var loadingJob: kotlinx.coroutines.Job? = null
 
+    // Combined Flow: Merges AIC API data with Firestore visited status
+    val combinedArtState: StateFlow<ArtState> = combine(_artState, _visitedArtworks) { state, visits ->
+        when (state) {
+            is ArtState.Success -> {
+                val markedArtworks = state.artworks.map { artwork ->
+                    val isVisited = visits.find { it.id == artwork.id }?.isVisited == true
+                    artwork.copy(is_visited_local = isVisited)
+                }
+                ArtState.Success(markedArtworks)
+            }
+            is ArtState.LoadingMore -> {
+                val markedArtworks = state.currentArtworks.map { artwork ->
+                    val isVisited = visits.find { it.id == artwork.id }?.isVisited == true
+                    artwork.copy(is_visited_local = isVisited)
+                }
+                ArtState.LoadingMore(markedArtworks)
+            }
+            else -> state
+        }
+    }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000), ArtState.Loading)
+
     init {
         loadNextPage()
-        loadVisitedArtworks()
+        observeVisitedArtworks()
     }
 
-    fun loadVisitedArtworks() {
+    private fun observeVisitedArtworks() {
         viewModelScope.launch {
-            try {
-                _visitedArtworks.value = visitedRepository.getVisits()
-            } catch (e: Exception) {
-                // Handle error
+            visitedRepository.getVisitsFlow().collect { visits ->
+                _visitedArtworks.value = visits
+                // Always sync the isVisited status for the currently viewed detail
+                val currentId = _currentArtworkDetails.value?.id
+                if (currentId != null) {
+                    _isVisited.value = visits.any { it.id == currentId && it.isVisited }
+                }
             }
         }
     }
+
 
     fun loadNextPage() {
         if (_artState.value is ArtState.LoadingMore || isEndReached) return
@@ -258,8 +284,8 @@ class ArtViewModel @Inject constructor(
         Log.d(TAG, "toggleVisited: id=${artwork.id}")
         viewModelScope.launch {
             try {
-                val currentStatus = _isVisited.value
                 val existingVisit = visitedRepository.getVisitById(artwork.id)
+                val currentStatus = existingVisit?.isVisited == true
                 
                 if (existingVisit == null) {
                     val userProfile = userRepository.getUserProfile()
@@ -278,13 +304,14 @@ class ArtViewModel @Inject constructor(
                     visitedRepository.addVisit(visited)
                     _isVisited.value = true
                 } else {
-                    visitedRepository.setVisitedStatus(artwork.id, !currentStatus)
-                    _isVisited.value = !currentStatus
+                    val newTargetStatus = !currentStatus
+                    visitedRepository.setVisitedStatus(artwork.id, newTargetStatus)
+                    if (artwork.id == _currentArtworkDetails.value?.id) {
+                        _isVisited.value = newTargetStatus
+                    }
                     
-                    // Clean up if not visited and no photos
                     visitedRepository.removeVisitIfNoPhotos(artwork.id)
                 }
-                loadVisitedArtworks()
                 loadPublicPhotos(artwork.id)
                 updateUserPoints()
             } catch (e: Exception) {
@@ -296,10 +323,18 @@ class ArtViewModel @Inject constructor(
     fun removeVisited(id: Int) {
         viewModelScope.launch {
             try {
-                visitedRepository.setVisitedStatus(id, false)
-                visitedRepository.removeVisitIfNoPhotos(id)
-                _isVisited.value = false
-                loadVisitedArtworks()
+                // Delete photos from storage first
+                val visit = visitedRepository.getVisitById(id)
+                visit?.imageUrls?.forEach { url ->
+                    try { storageRepository.deletePhoto(url) } catch (e: Exception) {}
+                }
+                
+                // Fully delete the visit record
+                visitedRepository.deleteVisit(id)
+                
+                if (id == _currentArtworkDetails.value?.id) {
+                    _isVisited.value = false
+                }
                 loadPublicPhotos(id)
                 updateUserPoints()
             } catch (e: Exception) {
@@ -335,7 +370,6 @@ class ArtViewModel @Inject constructor(
                 
                 val updatedUrls = visit.imageUrls + url
                 visitedRepository.updateVisitPhotos(artworkId, updatedUrls)
-                loadVisitedArtworks()
                 loadPublicPhotos(artworkId)
                 updateUserPoints()
             } catch (e: Exception) {
@@ -355,7 +389,6 @@ class ArtViewModel @Inject constructor(
                 // Final cleanup if untoggled and no photos left
                 visitedRepository.removeVisitIfNoPhotos(artworkId)
                 
-                loadVisitedArtworks()
                 loadPublicPhotos(artworkId)
                 updateUserPoints()
             } catch (e: Exception) {

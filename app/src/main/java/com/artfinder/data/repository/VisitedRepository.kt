@@ -3,6 +3,9 @@ package com.artfinder.data.repository
 import com.artfinder.data.model.VisitedArtwork
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import android.util.Log
 import javax.inject.Inject
@@ -42,6 +45,11 @@ class VisitedRepository @Inject constructor(
         }
     }
 
+    suspend fun deleteVisit(artworkId: Int) {
+        Log.d(TAG, "deleteVisit: id=$artworkId")
+        visitedCollection.document(artworkId.toString()).delete().await()
+    }
+
     suspend fun getPublicVisitsForArtwork(artworkId: Int): List<VisitedArtwork> {
         Log.d(TAG, "getPublicVisitsForArtwork: id=$artworkId")
         return firestore.collectionGroup("visited_artworks")
@@ -53,6 +61,20 @@ class VisitedRepository @Inject constructor(
 
     suspend fun getVisits(): List<VisitedArtwork> {
         return visitedCollection.get().await().toObjects(VisitedArtwork::class.java)
+    }
+
+    fun getVisitsFlow(): Flow<List<VisitedArtwork>> = callbackFlow {
+        val listener = visitedCollection.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            if (snapshot != null) {
+                val items = snapshot.toObjects(VisitedArtwork::class.java)
+                trySend(items)
+            }
+        }
+        awaitClose { listener.remove() }
     }
 
     suspend fun isVisited(artworkId: Int): Boolean {

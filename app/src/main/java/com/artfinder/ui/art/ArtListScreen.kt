@@ -109,7 +109,7 @@ fun ArtListScreen(
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(artworks.size) { index ->
                         val artwork = artworks[index]
-                        val isVisited = visitedArtworks.any { it.id == artwork.id }
+                        val isVisited = visitedArtworks.find { it.id == artwork.id }?.isVisited == true
                         if (index >= artworks.size - 1) {
                             LaunchedEffect(Unit) {
                                 viewModel.loadNextPage()

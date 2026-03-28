@@ -34,7 +34,7 @@ class ProfileViewModel @Inject constructor(
         loadLeaderboard()
     }
 
-    private fun loadProfile() {
+    fun loadProfile() {
         Log.d(TAG, "loadProfile")
         viewModelScope.launch {
             _profileState.value = ProfileState.Loading

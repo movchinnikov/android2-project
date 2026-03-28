@@ -41,7 +41,8 @@ data class Artwork(
     val gallery_id: Int? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val is_on_view: Boolean = false
+    val is_on_view: Boolean = false,
+    val is_visited_local: Boolean = false
 ) {
     val imageUrl: String
         get() = "https://www.artic.edu/iiif/2/$image_id/full/843,/0/default.jpg"
