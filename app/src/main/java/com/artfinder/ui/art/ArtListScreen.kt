@@ -26,7 +26,7 @@ fun ArtListScreen(
     galleryId: Long? = null,
     viewModel: ArtViewModel = hiltViewModel()
 ) {
-    val artState by viewModel.artState.collectAsState()
+    val artState by viewModel.combinedArtState.collectAsState()
     val galleryIdFilter by viewModel.galleryIdFilter.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
@@ -104,12 +104,12 @@ fun ArtListScreen(
             }
             is ArtState.LoadingMore, is ArtState.Success -> {
                 val artworks = if (state is ArtState.Success) state.artworks else (state as ArtState.LoadingMore).currentArtworks
-                val visitedArtworks by viewModel.visitedArtworks.collectAsState()
                 
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(artworks.size) { index ->
                         val artwork = artworks[index]
-                        val isVisited = visitedArtworks.find { it.id == artwork.id }?.isVisited == true
+                        val isVisited = artwork.is_visited_local
+                        
                         if (index >= artworks.size - 1) {
                             LaunchedEffect(Unit) {
                                 viewModel.loadNextPage()

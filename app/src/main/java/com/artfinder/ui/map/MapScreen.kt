@@ -32,8 +32,7 @@ fun MapScreen(
     onNavigateToGallery: (Int) -> Unit,
     viewModel: ArtViewModel = hiltViewModel()
 ) {
-    val artState by viewModel.artState.collectAsState()
-    val visitedArtworks by viewModel.visitedArtworks.collectAsState()
+    val artState by viewModel.combinedArtState.collectAsState()
     val context = LocalContext.current
     
     var hasLocationPermission by remember {
@@ -85,7 +84,7 @@ fun MapScreen(
                 (artState as ArtState.Success).artworks.forEach { artwork ->
                     val lat = artwork.latitude ?: 41.8796
                     val lng = artwork.longitude ?: -87.6237
-                    val isVisited = visitedArtworks.find { it.id == artwork.id }?.isVisited == true
+                    val isVisited = artwork.is_visited_local
                     
                     Marker(
                         state = MarkerState(position = LatLng(lat, lng)),

@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,7 +39,14 @@ class ArtViewModel @Inject constructor(
     val currentArtworkDetails: StateFlow<Artwork?> = _currentArtworkDetails
 
     private val _isVisited = MutableStateFlow(false)
-    val isVisited: StateFlow<Boolean> = _isVisited
+    val isVisited: StateFlow<Boolean> = combine(_currentArtworkDetails, _visitedArtworks) { artwork, visits ->
+        val currentId = artwork?.id
+        if (currentId != null) {
+            visits.find { it.id == currentId }?.isVisited == true
+        } else {
+            false
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private val _publicVisits = MutableStateFlow<List<VisitedArtwork>>(emptyList())
     val publicVisits: StateFlow<List<VisitedArtwork>> = _publicVisits
@@ -94,11 +103,6 @@ class ArtViewModel @Inject constructor(
         viewModelScope.launch {
             visitedRepository.getVisitsFlow().collect { visits ->
                 _visitedArtworks.value = visits
-                // Always sync the isVisited status for the currently viewed detail
-                val currentId = _currentArtworkDetails.value?.id
-                if (currentId != null) {
-                    _isVisited.value = visits.any { it.id == currentId && it.isVisited }
-                }
             }
         }
     }
@@ -228,7 +232,6 @@ class ArtViewModel @Inject constructor(
     fun getArtDetail(id: Int) {
         Log.d(TAG, "getArtDetail: id=$id")
         viewModelScope.launch {
-            _isVisited.value = visitedRepository.isVisited(id)
             
             val existing = allArtworks.find { it.id == id && it.description != null }
             if (existing != null) {
@@ -302,14 +305,9 @@ class ArtViewModel @Inject constructor(
                         userName = userProfile?.name ?: userProfile?.email?.substringBefore("@") ?: "Explorer"
                     )
                     visitedRepository.addVisit(visited)
-                    _isVisited.value = true
                 } else {
                     val newTargetStatus = !currentStatus
                     visitedRepository.setVisitedStatus(artwork.id, newTargetStatus)
-                    if (artwork.id == _currentArtworkDetails.value?.id) {
-                        _isVisited.value = newTargetStatus
-                    }
-                    
                     visitedRepository.removeVisitIfNoPhotos(artwork.id)
                 }
                 loadPublicPhotos(artwork.id)
@@ -331,10 +329,6 @@ class ArtViewModel @Inject constructor(
                 
                 // Fully delete the visit record
                 visitedRepository.deleteVisit(id)
-                
-                if (id == _currentArtworkDetails.value?.id) {
-                    _isVisited.value = false
-                }
                 loadPublicPhotos(id)
                 updateUserPoints()
             } catch (e: Exception) {
