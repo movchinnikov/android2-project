@@ -164,7 +164,7 @@ fun LeaderboardItem(rankedUser: RankedUser) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     Icons.Default.Star,
-                    contentDescription = null,
+                    contentDescription = "Points star",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )

@@ -9,20 +9,26 @@ import org.junit.Test
 class RewardManagerTest {
 
     @Test
-    fun `calculatePointsForPhotos returns 10 for 3 photos`() {
-        val points = RewardManager.calculatePointsForPhotos(3)
+    fun `calculatePointsForPhotos returns 0 for 0 photos`() {
+        val points = RewardManager.calculatePointsForPhotos(0)
+        assertEquals(0, points)
+    }
+
+    @Test
+    fun `calculatePointsForPhotos returns 10 for 1 photo`() {
+        val points = RewardManager.calculatePointsForPhotos(1)
         assertEquals(10, points)
     }
 
     @Test
-    fun `calculatePointsForPhotos returns 20 for 7 photos`() {
-        val points = RewardManager.calculatePointsForPhotos(7)
-        assertEquals(20, points)
+    fun `calculatePointsForPhotos returns 10 for 5 photos`() {
+        val points = RewardManager.calculatePointsForPhotos(5)
+        assertEquals(10, points)
     }
 
     @Test
-    fun `calculatePointsForPhotos returns 20 for 15 photos (max limit)`() {
-        val points = RewardManager.calculatePointsForPhotos(15)
+    fun `calculatePointsForPhotos returns 20 for 6 photos`() {
+        val points = RewardManager.calculatePointsForPhotos(6)
         assertEquals(20, points)
     }
 

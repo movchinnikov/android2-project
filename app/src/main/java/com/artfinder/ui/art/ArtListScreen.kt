@@ -165,8 +165,8 @@ fun ArtItem(artwork: Artwork, isVisited: Boolean, onToggleVisited: () -> Unit, o
             IconButton(onClick = onToggleVisited) {
                 Icon(
                     imageVector = if (isVisited) Icons.Default.Visibility else Icons.Outlined.Visibility,
-                    contentDescription = "Toggle Visited",
-                    tint = if (isVisited) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                    contentDescription = if (isVisited) "Remove from visited list" else "Mark as visited",
+                    tint = if (isVisited) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     modifier = Modifier.size(24.dp)
                 )
             }

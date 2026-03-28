@@ -256,7 +256,7 @@ fun ArtDetailContent(
                                         .data(url)
                                         .crossfade(true)
                                         .build(),
-                                    contentDescription = "Visit photo",
+                                    contentDescription = "My visit photo for ${artwork.title}",
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(MaterialTheme.shapes.medium),
@@ -267,9 +267,14 @@ fun ArtDetailContent(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                         .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f), MaterialTheme.shapes.small)
-                                        .size(32.dp)
+                                        .size(48.dp)
                                 ) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                                    Icon(
+                                        Icons.Default.Delete, 
+                                        contentDescription = "Delete visit photo", 
+                                        tint = MaterialTheme.colorScheme.error, 
+                                        modifier = Modifier.size(24.dp)
+                                    )
                                 }
                             }
                         }
@@ -294,7 +299,7 @@ fun ArtDetailContent(
                                             .data(url)
                                             .crossfade(true)
                                             .build(),
-                                        contentDescription = "Community photo",
+                                        contentDescription = "Community photo by ${visitDoc.userName.ifEmpty { "another visitor" }}",
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .clip(MaterialTheme.shapes.medium),

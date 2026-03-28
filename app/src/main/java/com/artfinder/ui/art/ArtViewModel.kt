@@ -371,12 +371,7 @@ class ArtViewModel @Inject constructor(
                     val visits = visitedRepository.getVisits()
                     var points = 0
                     visits.forEach { visit ->
-                        val photoCount = visit.imageUrls.size
-                        points += when {
-                            photoCount >= 6 -> 20
-                            photoCount >= 1 -> 10
-                            else -> 0
-                        }
+                        points += com.artfinder.domain.gamification.RewardManager.calculatePointsForPhotos(visit.imageUrls.size)
                     }
                     points
                 }
