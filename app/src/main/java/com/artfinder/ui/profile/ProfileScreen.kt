@@ -24,6 +24,10 @@ fun ProfileScreen(
 ) {
     val profileState by viewModel.profileState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadProfile()
+    }
+
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

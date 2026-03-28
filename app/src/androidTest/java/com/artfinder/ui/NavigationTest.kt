@@ -28,7 +28,11 @@ class NavigationTest {
     @Before
     fun setup() {
         // Ensure we are logged out so we start on the Login screen
-        FirebaseAuth.getInstance().signOut()
+        try {
+            FirebaseAuth.getInstance().signOut()
+        } catch (e: Exception) {
+            // Might fail if Firebase not initialized, but Hilt should handle it
+        }
     }
 
     @Test
@@ -51,7 +55,7 @@ class NavigationTest {
         composeTestRule.setContent {
             ArtFinderTheme {
                 // Manually navigate to register for this test
-                RegisterScreen(onNavigateToLogin = {}, onRegisterSuccess = {})
+                RegisterScreen(onNavigateToLogin = { /* No-op */ }, onRegisterSuccess = { /* No-op */ })
             }
         }
 

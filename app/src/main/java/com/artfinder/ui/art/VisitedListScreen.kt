@@ -26,9 +26,6 @@ fun VisitedListScreen(
 ) {
     val visitedArtworks by viewModel.visitedArtworks.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadVisitedArtworks()
-    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Visited Artworks") }) }
