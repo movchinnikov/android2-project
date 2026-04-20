@@ -1155,7 +1155,60 @@
       </div>
     </div>
 
-    <!-- 12. END -->
+        <!-- 12. LESSONS LEARNED -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Experience</div>
+        <div class="slide-title">What I <span>Learned</span></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>Firebase Cloud Firestore</strong><span class="sub">Designing NoSQL schemas, linking documents to user IDs, and utilizing real-time snapshot listeners for immediate UI updates.</span></li>
+            <li><strong>Firebase Authentication</strong><span class="sub">Implementing secure email/password login flows and managing persistent user sessions securely.</span></li>
+            <li><strong>Android Accessibility</strong><span class="sub">Understanding how to make the app inclusive using TalkBack, content descriptions, and proper semantic trees in Compose.</span></li>
+            <li><strong>Testing Strategy</strong><span class="sub">Writing unit tests for business logic and executing instrumented UI tests using Hilt and ComposeTestRule.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13. CHALLENGES -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Obstacles</div>
+        <div class="slide-title">Main <span>Challenges</span></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>Accessibility Testing</strong><span class="sub">While I learned the theory, effectively testing UI with TalkBack and ensuring flawless navigation for disabled users proved to be extremely difficult to master in practice.</span></li>
+            <li><strong>Photo Upload Performance</strong><span class="sub">Integrating the camera and Firebase Storage was tough. The app currently experiences significant lag and performance drops on the emulator when capturing and uploading high-res photos.</span></li>
+            <li><strong>State Management Complexity</strong><span class="sub">Keeping the local UI state perfectly synchronized with remote Firebase data while handling edge cases (like network drops) required complex flow combining in ViewModels.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14. FUTURE PLANS -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Roadmap</div>
+        <div class="slide-title">Future <span>Plans</span></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>AI Integration</strong><span class="sub">Implement a Vision AI model to verify user photos against actual artworks, and an LLM to generate interactive, personalized audio tours for galleries.</span></li>
+            <li><strong>Performance Optimization</strong><span class="sub">Implement background workers and image compression algorithms to resolve the camera lagging issues.</span></li>
+            <li><strong>Social Features</strong><span class="sub">Add the ability to "follow" other users, view their curated collections, and leave comments on community photos.</span></li>
+            <li><strong>Offline Mode</strong><span class="sub">Utilize Room Database to cache API artwork data and allow users to browse and queue visits even without an internet connection.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 15. END -->
     <div class="slide end-slide">
       <div class="slide-body">
         <div class="app-icon">🎨</div>
