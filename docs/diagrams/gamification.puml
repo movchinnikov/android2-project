@@ -1,0 +1,49 @@
+@startuml gamification
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 14
+
+skinparam activity {
+  BackgroundColor #16213e
+  BorderColor #6200EE
+  FontColor #ffffff
+  DiamondBackgroundColor #0f3460
+  DiamondBorderColor #03DAC6
+  DiamondFontColor #03DAC6
+  StartColor #03DAC6
+  EndColor #6200EE
+  BorderThickness 2
+}
+skinparam arrow {
+  Color #03DAC6
+  FontColor #e0e0e0
+}
+
+title <color:#ffffff><size:20>Gamification Logic: Points & Badges</size></color>
+
+start
+:User uploads photo to visited artwork;
+
+if (Photo count for artwork?) then (1..5 photos)
+  :Award **10 points** for this artwork;
+else (6..10 photos)
+  :Award **20 points** for this artwork\n(maximum per artwork);
+endif
+
+:Recalculate total points\nacross all visited artworks;
+:Save updated points to\nFirestore user profile;
+
+if (Total points?) then (0..100)
+  :**Explorer** Badge 🧭;
+elseif (Total points?) then (101..250)
+  :**Curator** Badge 🖼️;
+else (251..500+)
+  :**Archivist** Badge 📚;
+endif
+
+:Update badge field in\nFirestore user profile;
+:Display on Profile Screen;
+stop
+
+@enduml

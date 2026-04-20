@@ -1,0 +1,111 @@
+@startuml login_jwt_flow
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+skinparam participant {
+  BackgroundColor #16213e
+  BorderColor #6200EE
+  FontColor #ffffff
+  BorderThickness 2
+}
+skinparam actor {
+  BackgroundColor #16213e
+  BorderColor #03DAC6
+  FontColor #03DAC6
+}
+skinparam arrow {
+  Color #03DAC6
+  FontColor #e0e0e0
+  FontSize 12
+}
+skinparam note {
+  BackgroundColor #0f3460
+  BorderColor #6200EE
+  FontColor #ddd
+}
+skinparam sequenceLifeLineBorderColor #6200EE
+
+title <color:#ffffff><size:20>Login & JWT Token Flow</size></color>
+
+actor User
+participant "LoginScreen\n(Jetpack Compose)" as UI #0f3460
+participant "AuthViewModel" as VM #0f3460
+participant "AuthRepository" as AuthRepo #16213e
+participant "Firebase Auth\nSDK (local)" as SDK #8B0000
+participant "Firebase Auth\nServer" as FBServer #8B0000
+participant "Firestore DB" as FS #00008B
+
+User -> UI: Enter Email, Password\nTap "Login"
+activate UI
+
+UI -> VM: login(email, psw)
+activate VM
+VM -> VM: authState = Loading
+
+VM -> AuthRepo: login(email, psw)
+activate AuthRepo
+
+AuthRepo -> SDK: signInWithEmailAndPassword(email, psw)
+activate SDK
+
+SDK -> FBServer: HTTPS POST /identitytoolkit\n{ email, password }
+activate FBServer
+
+note over FBServer
+  Server verifies password hash
+  against stored credential
+end note
+
+FBServer --> SDK: ID Token (JWT)\n+ Refresh Token
+deactivate FBServer
+
+note over SDK
+  JWT Payload contains:
+  { "uid": "abc123",
+    "email": "user@x.ca",
+    "exp": 1713680000 }
+  Signed with Firebase private key
+end note
+
+SDK -> SDK: Cache JWT locally\n(expires in 1 hour)
+SDK --> AuthRepo: FirebaseUser(uid)
+deactivate SDK
+
+AuthRepo --> VM: FirebaseUser
+deactivate AuthRepo
+
+VM -> VM: authState = Success
+VM --> UI: authState = Success
+deactivate VM
+
+UI --> User: Navigate to Art List
+deactivate UI
+
+== Later: Firestore Request ==
+
+UI -> FS: getArtworks() / getUserProfile()
+activate FS
+
+note over FS
+  Firebase SDK automatically attaches:
+  Authorization: Bearer <JWT>
+  to every Firestore gRPC request
+end note
+
+FS -> FS: Verify JWT signature\nCheck request.auth.uid\nagainst Security Rules
+FS --> UI: Authorized data response
+deactivate FS
+
+== After 1 hour: Auto Token Refresh ==
+
+SDK -> FBServer: POST /token\n{ refreshToken }
+activate FBServer
+FBServer --> SDK: New ID Token (JWT)
+deactivate FBServer
+note over SDK: App continues seamlessly\nwithout user re-login
+
+@enduml

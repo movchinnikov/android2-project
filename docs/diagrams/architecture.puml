@@ -1,0 +1,81 @@
+@startuml architecture
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 14
+
+skinparam rectangle {
+  BackgroundColor #16213e
+  BorderColor #6200EE
+  FontColor #ffffff
+  RoundCorner 12
+  BorderThickness 2
+}
+skinparam package {
+  BackgroundColor #0f3460
+  BorderColor #03DAC6
+  FontColor #03DAC6
+  FontStyle bold
+}
+skinparam arrow {
+  Color #03DAC6
+  FontColor #e0e0e0
+}
+
+title <color:#ffffff><size:22>ArtFinder — MVVM + Repository Architecture</size></color>
+
+package "UI Layer (Jetpack Compose)" {
+  rectangle "LoginScreen\nRegisterScreen" as AUTH_UI
+  rectangle "ArtListScreen\nArtDetailScreen" as ART_UI
+  rectangle "MapScreen" as MAP_UI
+  rectangle "VisitedListScreen" as VISITED_UI
+  rectangle "ProfileScreen\nLeaderboardScreen" as PROFILE_UI
+}
+
+package "ViewModel Layer" {
+  rectangle "AuthViewModel" as AUTH_VM
+  rectangle "ArtViewModel" as ART_VM
+  rectangle "ProfileViewModel" as PROFILE_VM
+}
+
+package "Repository Layer" {
+  rectangle "AuthRepository" as AUTH_REPO
+  rectangle "ArtRepository" as ART_REPO
+  rectangle "VisitedRepository" as VISITED_REPO
+  rectangle "UserRepository" as USER_REPO
+  rectangle "StorageRepository" as STORAGE_REPO
+}
+
+package "Data Sources" {
+  rectangle "Firebase Auth" as FB_AUTH #darkred
+  rectangle "Firestore DB" as FIRESTORE #darkred
+  rectangle "Firebase Storage" as FB_STORAGE #darkred
+  rectangle "AIC REST API\n(Retrofit)" as RETROFIT #darkblue
+}
+
+package "Domain Layer" {
+  rectangle "RewardManager\n(Points & Badges)" as REWARD
+}
+
+AUTH_UI --> AUTH_VM
+ART_UI --> ART_VM
+MAP_UI --> ART_VM
+VISITED_UI --> ART_VM
+PROFILE_UI --> PROFILE_VM
+
+AUTH_VM --> AUTH_REPO
+ART_VM --> ART_REPO
+ART_VM --> VISITED_REPO
+ART_VM --> USER_REPO
+ART_VM --> STORAGE_REPO
+ART_VM --> REWARD
+PROFILE_VM --> USER_REPO
+PROFILE_VM --> VISITED_REPO
+
+AUTH_REPO --> FB_AUTH
+ART_REPO --> RETROFIT
+VISITED_REPO --> FIRESTORE
+USER_REPO --> FIRESTORE
+STORAGE_REPO --> FB_STORAGE
+
+@enduml

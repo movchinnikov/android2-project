@@ -1,0 +1,86 @@
+@startuml registration_flow
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+skinparam participant {
+  BackgroundColor #16213e
+  BorderColor #6200EE
+  FontColor #ffffff
+  BorderThickness 2
+}
+skinparam actor {
+  BackgroundColor #16213e
+  BorderColor #03DAC6
+  FontColor #03DAC6
+}
+skinparam arrow {
+  Color #03DAC6
+  FontColor #e0e0e0
+  FontSize 12
+}
+skinparam note {
+  BackgroundColor #0f3460
+  BorderColor #6200EE
+  FontColor #ddd
+}
+skinparam sequenceLifeLineBorderColor #6200EE
+
+title <color:#ffffff><size:20>User Registration Flow</size></color>
+
+actor User
+participant "RegisterScreen\n(Jetpack Compose)" as UI #0f3460
+participant "AuthViewModel" as VM #0f3460
+participant "AuthRepository" as AuthRepo #16213e
+participant "UserRepository" as UserRepo #16213e
+participant "Firebase Auth" as FBAuth #8B0000
+participant "Firestore DB" as FS #00008B
+
+User -> UI: Fill Name, Email, Password\nTap "Register"
+activate UI
+
+UI -> VM: register(email, psw, name)
+activate VM
+
+VM -> VM: authState = Loading
+
+VM -> AuthRepo: register(email, psw)
+activate AuthRepo
+
+AuthRepo -> FBAuth: createUserWithEmailAndPassword(email, psw)
+activate FBAuth
+
+note over FBAuth
+  Password is salted & hashed
+  Never stored in plain text
+end note
+
+FBAuth --> AuthRepo: FirebaseUser(uid, email)
+deactivate FBAuth
+
+AuthRepo --> VM: FirebaseUser
+deactivate AuthRepo
+
+VM -> UserRepo: saveUserProfile(uid, UserProfile(email, name))
+activate UserRepo
+
+UserRepo -> FS: users/{uid}.set({ email, name, points:0, badge:"Explorer" })
+activate FS
+FS --> UserRepo: success
+deactivate FS
+
+UserRepo --> VM: done
+deactivate UserRepo
+
+VM -> VM: authState = Success
+
+VM --> UI: authState = Success
+deactivate VM
+
+UI --> User: Navigate to Art List Screen
+deactivate UI
+
+@enduml

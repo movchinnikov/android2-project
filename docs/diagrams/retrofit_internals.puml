@@ -1,0 +1,80 @@
+@startuml retrofit_internals
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+
+skinparam component {
+  BackgroundColor #16213e
+  BorderColor #6200EE
+  FontColor #ffffff
+  BorderThickness 2
+}
+skinparam package {
+  BackgroundColor #0a0a2a
+  BorderColor #03DAC6
+  FontColor #03DAC6
+  FontStyle bold
+}
+skinparam arrow {
+  Color #03DAC6
+  FontColor #e0e0e0
+}
+skinparam note {
+  BackgroundColor #0f3460
+  BorderColor #6200EE
+  FontColor #ddd
+}
+
+title <color:#ffffff><size:20>Retrofit — Under the Hood</size></color>
+
+package "App Code" {
+  component "ArtApiService\n(Interface)" as IFACE
+  component "ArtRepository" as REPO
+}
+
+package "Retrofit Layer" {
+  component "Retrofit Builder\n(Singleton via Hilt)" as BUILDER
+  component "Dynamic Proxy\n(Generated at Runtime)" as PROXY
+  component "Call Adapter\n(Coroutines)" as ADAPTER
+  component "Converter\n(Gson / Moshi)" as CONV
+}
+
+package "OkHttp Layer" {
+  component "OkHttpClient" as OKHTTP
+  component "Connection Pool" as POOL
+  component "Cache (Disk)" as CACHE
+  component "Interceptors" as INTERCEPT
+}
+
+cloud "AIC REST API\napi.artic.edu" as API
+
+REPO -> IFACE : suspend fun getArtworks(page)
+IFACE -> BUILDER : @GET("artworks")\n@Query("page")
+BUILDER -> PROXY : creates implementation
+PROXY -> ADAPTER : wraps in suspend / Flow
+ADAPTER -> CONV : serializes request params
+CONV -> OKHTTP : OkHttp Request
+OKHTTP -> POOL : reuse connection
+POOL -> CACHE : cache miss?
+CACHE -> API : HTTPS GET /api/v1/artworks?page=1
+API --> CACHE : JSON Response
+CACHE --> OKHTTP : cached or fresh
+OKHTTP --> CONV : raw JSON bytes
+CONV --> ADAPTER : Kotlin data class (Artwork)
+ADAPTER --> REPO : List<Artwork>
+
+note right of CONV
+  JSON Field:
+  "artist_display"
+  maps to Kotlin:
+  artist_display: String?
+end note
+
+note right of INTERCEPT
+  Logging Interceptor
+  adds debug logs in
+  DEBUG build only
+end note
+
+@enduml

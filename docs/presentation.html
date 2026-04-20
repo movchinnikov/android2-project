@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtFinder — Project Presentation</title>
+  <style>
+    /* LIGHTBOX */
+    #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;padding:40px;cursor:zoom-out;backdrop-filter:blur(8px);animation:fadeUp .2s ease}
+    #lightbox.open{display:flex}
+    #lb-img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:10px;box-shadow:0 10px 60px rgba(0,0,0,0.7)}
+    #lb-close{position:fixed;top:20px;right:28px;color:#fff;font-size:32px;cursor:pointer;opacity:0.7;line-height:1}
+    #lb-close:hover{opacity:1}
+    .zoomable{cursor:zoom-in;transition:opacity .2s}
+    .zoomable:hover{opacity:0.85}
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0d0d1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 30px 20px;
+      gap: 20px
+    }
+
+    /* CONTROLS */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50px;
+      padding: 10px 20px;
+      backdrop-filter: blur(10px)
+    }
+
+    .controls button {
+      background: linear-gradient(135deg, #6200EE, #9c55f5);
+      color: #fff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: all .2s;
+      letter-spacing: .5px
+    }
+
+    .controls button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(98, 0, 238, .4)
+    }
+
+    .controls button:disabled {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.3);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none
+    }
+
+    .slide-counter {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+      min-width: 60px;
+      text-align: center
+    }
+
+    /* SLIDE WRAPPER */
+    .deck {
+      position: relative;
+      width: 960px;
+      height: 560px
+    }
+
+    .deck::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      background: linear-gradient(135deg, #6200EE44, #03DAC644);
+      border-radius: 20px;
+      filter: blur(20px);
+      z-index: 0
+    }
+
+    /* SLIDE */
+    .slide {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: #12122a;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+      z-index: 1;
+      animation: fadeUp .4s ease
+    }
+
+    .slide.active {
+      display: flex;
+      flex-direction: column
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* SLIDE HEADER */
+    .slide-header {
+      padding: 20px 36px 0;
+      flex-shrink: 0
+    }
+    .slide-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #03DAC6;
+      margin-bottom: 6px
+    }
+    .slide-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2
+    }
+    .slide-title span {
+      background: linear-gradient(90deg, #6200EE, #03DAC6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+    .divider {
+      width: 50px;
+      height: 3px;
+      background: linear-gradient(90deg, #6200EE, #03DAC6);
+      border-radius: 2px;
+      margin-top: 10px
+    }
+
+    /* SLIDE BODY */
+    .slide-body {
+      flex: 1;
+      min-height: 0;
+      padding: 20px 40px 28px;
+      display: flex;
+      gap: 24px;
+      overflow: hidden
+    }
+    /* Fixed-width text column — 42% of slide body */
+    .col-text {
+      flex: 0 0 42%;
+      max-width: 42%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden
+    }
+    /* Flexible diagram column */
+    .col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden
+    }
+
+    /* BULLETS */
+    .bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px
+    }
+    .bullets li {
+      display: grid;
+      grid-template-columns: 10px 1fr;
+      grid-template-rows: auto auto;
+      column-gap: 12px;
+      row-gap: 2px;
+      align-items: start;
+      color: rgba(255,255,255,0.9);
+      font-size: 15px;
+    }
+    .bullets li::before {
+      content: '';
+      grid-column: 1;
+      grid-row: 1 / span 2;
+      width: 8px;
+      height: 8px;
+      background: #6200EE;
+      border-radius: 50%;
+      margin-top: 5px;
+      justify-self: center
+    }
+    .bullets li strong {
+      grid-column: 2;
+      grid-row: 1;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.3
+    }
+    .bullets li .sub {
+      grid-column: 2;
+      grid-row: 2;
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.45
+    }
+
+    /* CODE BLOCK */
+    .code-block {
+      background: #0a0a1a;
+      border: 1px solid rgba(98, 0, 238, .4);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #e0e0e0;
+      line-height: 1.7;
+      overflow: auto
+    }
+
+    .code-block .k {
+      color: #c792ea
+    }
+
+    .code-block .t {
+      color: #80cbc4
+    }
+
+    .code-block .s {
+      color: #c3e88d
+    }
+
+    .code-block .c {
+      color: #546e7a;
+      font-style: italic
+    }
+
+    /* DIAGRAM — strictly contained */
+    .diagram-wrap {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a1a;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.07);
+      overflow: hidden;
+      padding: 6px
+    }
+    .diagram-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      display: block
+    }
+    /* SCREENSHOT — small fixed panel */
+    .screenshot {
+      flex: none;
+      width: 200px;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0a0a1a;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      overflow: hidden;
+      padding: 6px
+    }
+    .screenshot img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block
+    }
+    .screenshot .placeholder {
+      color: rgba(255,255,255,0.25);
+      font-size: 11px;
+      text-align: center;
+      padding: 10px;
+      line-height: 1.6
+    }
+    .screenshot .placeholder strong {
+      display: block;
+      color: #03DAC6;
+      font-size: 12px;
+      margin-bottom: 4px
+    }
+
+    /* TITLE SLIDE */
+    .title-slide {
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a0533 50%, #0d0d1a 100%)
+    }
+
+    .title-slide .slide-body {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center
+    }
+
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #6200EE, #03DAC6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin-bottom: 20px;
+      box-shadow: 0 16px 40px rgba(98, 0, 238, .5)
+    }
+
+    .title-main {
+      font-size: 64px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #fff 0%, #a78bfa 50%, #03DAC6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px
+    }
+
+    .title-sub {
+      font-size: 22px;
+      color: rgba(255, 255, 255, 0.45);
+      font-weight: 300;
+      margin-bottom: 40px
+    }
+
+    .title-badges {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    .badge-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7)
+    }
+
+    /* STAT CARDS */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      width: 100%
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px 20px
+    }
+
+    .stat-card .num {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #6200EE, #03DAC6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .stat-card .label {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 2px
+    }
+
+    /* BADGE ROW */
+    .badge-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px
+    }
+
+    .award-badge {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.08)
+    }
+
+    .award-badge .icon {
+      font-size: 32px
+    }
+
+    .award-badge .name {
+      font-weight: 700;
+      color: #fff;
+      font-size: 15px;
+      margin-top: 6px
+    }
+
+    .award-badge .range {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 2px
+    }
+
+    /* TEST CARDS */
+    .test-card {
+      background: rgba(255, 255, 255, 0.04);
+      border-left: 3px solid #6200EE;
+      border-radius: 0 10px 10px 0;
+      padding: 12px 16px;
+      margin-bottom: 12px
+    }
+
+    .test-card.ui {
+      border-color: #03DAC6
+    }
+
+    .test-card .type {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 4px
+    }
+
+    .test-card.ui .type {
+      color: #03DAC6
+    }
+
+    .test-card .desc {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8)
+    }
+
+    /* END SLIDE */
+    .end-slide .slide-body {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 20px
+    }
+
+    .end-title {
+      font-size: 56px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #fff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent
+    }
+
+    .end-sub {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 20px
+    }
+
+    /* PROGRESS BAR */
+    .progress-bar {
+      width: 960px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 2px
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6200EE, #03DAC6);
+      border-radius: 2px;
+      transition: width .4s ease
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="controls">
+    <button id="prevBtn" onclick="go(-1)">← Prev</button>
+    <span class="slide-counter" id="counter">1 / 15</span>
+    <button id="nextBtn" onclick="go(1)">Next →</button>
+  </div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="prog"></div>
+  </div>
+
+  <!-- LIGHTBOX -->
+  <div id="lightbox" onclick="closeLB()">
+    <span id="lb-close" onclick="closeLB()">✕</span>
+    <img id="lb-img" src="" alt="Zoomed">
+  </div>
+
+  <div class="deck">
+
+    <!-- 1. TITLE -->
+    <div class="slide title-slide active">
+      <div class="slide-body">
+        <div class="app-icon">🎨</div>
+        <div class="title-main">ArtFinder</div>
+        <div class="title-sub">Discover · Visit · Collect · Share</div>
+        <div class="title-badges">
+          <div class="badge-pill">Firebase Auth</div>
+          <div class="badge-pill">Firestore</div>
+          <div class="badge-pill">Google Maps</div>
+          <div class="badge-pill">Camera</div>
+          <div class="badge-pill">MVVM</div>
+          <div class="badge-pill">Jetpack Compose</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. OVERVIEW -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Introduction</div>
+        <div class="slide-title">Project <span>Overview</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>Goal</strong><span class="sub">Interactive Android app to discover, track visits, and earn
+                rewards for engaging with artworks.</span></li>
+            <li><strong>Data Source</strong><span class="sub">Art Institute of Chicago (AIC) Public REST API — 100,000+
+                artworks.</span></li>
+            <li><strong>Backend</strong><span class="sub">Firebase Authentication, Firestore, and Storage.</span></li>
+            <li><strong>Tech Stack</strong><span class="sub">Kotlin · Jetpack Compose · Retrofit · Hilt · Google Maps
+                SDK</span></li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="num">100K+</div>
+              <div class="label">Artworks from AIC API</div>
+            </div>
+            <div class="stat-card">
+              <div class="num">6</div>
+              <div class="label">Repository classes</div>
+            </div>
+            <div class="stat-card">
+              <div class="num">3</div>
+              <div class="label">Firebase services used</div>
+            </div>
+            <div class="stat-card">
+              <div class="num">4+</div>
+              <div class="label">Automated tests</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. ARCHITECTURE -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Architecture</div>
+        <div class="slide-title">MVVM + Repository <span>Pattern</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col-text">
+          <ul class="bullets">
+            <li><strong>UI Layer</strong><span class="sub">Jetpack Compose screens observe StateFlow from
+                ViewModels.</span></li>
+            <li><strong>ViewModel</strong><span class="sub">Holds UI state, calls repositories, no direct data
+                access.</span></li>
+            <li><strong>Repository</strong><span class="sub">Single source of truth. Merges API + Firestore data.</span>
+            </li>
+            <li><strong>DI</strong><span class="sub">Dagger Hilt for all dependencies.</span></li>
+          </ul>
+        </div>
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/architecture.png" onclick="openLB(this.src)" alt="MVVM Architecture Diagram">
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. AUTH & PROFILE -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Data Persistence · Cloud</div>
+        <div class="slide-title">Auth & <span>User Profiles</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>Firebase Auth</strong><span class="sub">Email/password registration and login via
+                AuthRepository.</span></li>
+            <li><strong>Auto-created Profile</strong><span class="sub">On first register, a user document is written to
+                Firestore <code>users/{uid}</code>.</span></li>
+            <li><strong>Profile Updates</strong><span class="sub">Edit name, change password — synced to Firestore in
+                real time.</span></li>
+            <li><strong>Persistent Session</strong><span class="sub">Firebase SDK persists auth state; app skips login
+                screen on relaunch.</span></li>
+          </ul>
+        </div>
+        <div class="screenshot">
+          <img class="zoomable" src="screenshots/03_login_profile.png" onclick="openLB(this.src)"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block'" alt="Login / Profile">
+          <div class="placeholder" style="display:none"><strong>📸 Screenshot
+              needed</strong>docs/screenshots/03_login_profile.png<br><br>Login screen + Profile screen side by side
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4b. REGISTRATION SCREEN -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Firebase Auth</div>
+        <div class="slide-title">User <span>Registration Flow</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col-text">
+          <ul class="bullets">
+            <li><strong>Input Validation</strong><span class="sub">Name, Email, Password validated before sending.</span></li>
+            <li><strong>createUserWithEmailAndPassword()</strong><span class="sub">Firebase creates account — password is hashed, never stored in plain text.</span></li>
+            <li><strong>Profile Auto-Created</strong><span class="sub"><code>saveUserProfile(uid)</code> writes <code>users/{uid}</code> doc with name, email, points: 0.</span></li>
+            <li><strong>Auth State Change</strong><span class="sub">SDK triggers state change → app navigates to Art List automatically.</span></li>
+          </ul>
+        </div>
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/registration_flow.png" onclick="openLB(this.src)" alt="Registration Flow Diagram">
+        </div>
+      </div>
+    </div>
+
+    <!-- 4c. LOGIN SCREEN + JWT -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Firebase Auth · JWT</div>
+        <div class="slide-title">Login &amp; <span>JWT Token Flow</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col-text">
+          <ul class="bullets">
+            <li><strong>signInWithEmailAndPassword()</strong><span class="sub">Firebase verifies credentials server-side, returns <code>FirebaseUser</code>.</span></li>
+            <li><strong>JWT ID Token</strong><span class="sub">Signed token with UID, email, expiry — auto-attached to every Firestore request as Bearer token.</span></li>
+            <li><strong>Auto-refresh</strong><span class="sub">SDK silently renews token every hour, no user interaction required.</span></li>
+            <li><strong>Security Rules</strong><span class="sub">Firestore verifies <code>request.auth.uid</code> from JWT before granting access.</span></li>
+          </ul>
+        </div>
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/login_jwt_flow.png" onclick="openLB(this.src)" alt="Login & JWT Flow Diagram">
+        </div>
+      </div>
+    </div>
+
+    <!-- 4d. PROFILE SCREEN -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">User Profile</div>
+        <div class="slide-title">Profile <span>Screen</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>Reads from Firestore</strong><span class="sub">On load, <code>ProfileViewModel</code> fetches the user document from <code>users/{uid}</code>.</span></li>
+            <li><strong>Displays Points &amp; Badge</strong><span class="sub">Total accumulated points and current achievement badge (Explorer / Curator / Archivist) shown with icon.</span></li>
+            <li><strong>Edit Name</strong><span class="sub">Navigates to <code>EditNameScreen</code>, calls <code>UserRepository.updateProfileName()</code> to persist change.</span></li>
+            <li><strong>Leaderboard Link</strong><span class="sub">Navigates to <code>LeaderboardScreen</code> which reads all users from Firestore and ranks them by points.</span></li>
+            <li><strong>Logout</strong><span class="sub">Calls <code>FirebaseAuth.signOut()</code>, clears state and navigates back to Login.</span></li>
+          </ul>
+        </div>
+        <div class="screenshot">
+          <img class="zoomable" src="screenshots/profile_screen.png" onclick="openLB(this.src)"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block'" alt="Profile Screen">
+          <div class="placeholder" style="display:none"><strong>📸 Screenshot needed</strong>docs/screenshots/profile_screen.png<br><br>Profile screen with badge + points</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. FIRESTORE SCHEMA -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Data Persistence · Cloud</div>
+        <div class="slide-title">Firestore <span>Database Schema</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/firestore_schema.png" onclick="openLB(this.src)" alt="Firestore Schema">
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. RETROFIT DEEP DIVE -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Networking · API</div>
+        <div class="slide-title">Retrofit — <span>Under the Hood</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col-text">
+          <ul class="bullets">
+            <li><strong>Interface → Proxy</strong><span class="sub">Retrofit generates a dynamic proxy at runtime that implements your <code>ArtApiService</code> interface.</span></li>
+            <li><strong>OkHttp Transport</strong><span class="sub">Actual HTTP connection, connection pooling, disk cache, and logging interceptors.</span></li>
+            <li><strong>Coroutines Adapter</strong><span class="sub"><code>suspend</code> functions run on IO thread — result delivered on Main thread safely.</span></li>
+            <li><strong>Gson Converter</strong><span class="sub">JSON field <code>"artist_display"</code> maps to Kotlin <code>artist_display: String?</code> automatically.</span></li>
+            <li><strong>Pagination</strong><span class="sub"><code>?page=1&limit=20</code> query params via <code>@Query</code> annotations.</span></li>
+          </ul>
+        </div>
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/retrofit_internals.png" onclick="openLB(this.src)" alt="Retrofit Internals">
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. LOCATION & MAPS -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Location Services · Maps SDK</div>
+        <div class="slide-title">Google Maps — <span>How Markers Work</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col-text">
+          <ul class="bullets">
+            <li><strong>Runtime Permissions</strong><span class="sub"><code>rememberLauncherForActivityResult</code> requests <code>ACCESS_FINE_LOCATION</code> on map open.</span></li>
+            <li><strong>Gallery Markers</strong><span class="sub">Loaded from AIC API <code>/galleries</code>, filtered to those with coordinates.</span></li>
+            <li><strong>Marker Colors</strong><span class="sub">🟢 Green = visited, 🔴 Red = not visited, 🟣 Violet = gallery cluster, 🔵 Azure = single gallery.</span></li>
+            <li><strong>Clustering</strong><span class="sub">Nearby galleries grouped by rounded coordinates (×3000 precision).</span></li>
+            <li><strong>Bottom Sheet</strong><span class="sub">Tap gallery cluster → <code>ModalBottomSheet</code> with list and thumbnails.</span></li>
+          </ul>
+        </div>
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/maps_markers.png" onclick="openLB(this.src)" alt="Maps Markers Flow">
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. CAMERA & STORAGE -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Camera · Firebase Storage</div>
+        <div class="slide-title">Visit <span>Photos</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>Capture or Pick</strong><span class="sub">User takes photo with camera or picks from
+                gallery.</span></li>
+            <li><strong>Firebase Storage</strong><span class="sub">Uploaded to
+                <code>visits/{uid}/{artId}/{filename}</code>.</span></li>
+            <li><strong>Firestore Link</strong><span class="sub">Download URL saved to <code>imageUrls</code> array in
+                visited document.</span></li>
+            <li><strong>Multiple Photos</strong><span class="sub">Supports 1–10 photos per artwork. Photos
+                deletable.</span></li>
+          </ul>
+        </div>
+        <div class="screenshot">
+          <img class="zoomable" src="screenshots/07_camera_upload.png" onclick="openLB(this.src)"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block'" alt="Camera">
+          <div class="placeholder" style="display:none"><strong>📸 Screenshot
+              needed</strong>docs/screenshots/07_camera_upload.png<br><br>Detail screen showing uploaded photos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. GAMIFICATION -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Gamification</div>
+        <div class="slide-title">Points &amp; <span>Achievement Badges</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body" style="flex-direction:column;gap:16px">
+        <div class="badge-row">
+          <div class="award-badge">
+            <div class="icon">🧭</div>
+            <div class="name">Explorer</div>
+            <div class="range">0 – 100 pts</div>
+          </div>
+          <div class="award-badge" style="border-color:rgba(3,218,198,.2)">
+            <div class="icon">🖼️</div>
+            <div class="name">Curator</div>
+            <div class="range">101 – 250 pts</div>
+          </div>
+          <div class="award-badge" style="border-color:rgba(255,193,7,.2)">
+            <div class="icon">📚</div>
+            <div class="name">Archivist</div>
+            <div class="range">251 – 500 pts</div>
+          </div>
+        </div>
+        <div class="diagram-wrap" style="flex:1">
+          <img class="zoomable" src="diagrams/gamification.png" onclick="openLB(this.src)" alt="Gamification Flow">
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. TESTING -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">App Testing</div>
+        <div class="slide-title">Unit &amp; UI <span>Tests</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <div class="test-card">
+            <div class="type">Unit Test — RewardManager</div>
+            <div class="desc">Verifies point calculation: 1-5 photos → 10pts, 6-10 photos → 20pts, 0 photos → 0pts.
+            </div>
+          </div>
+          <div class="test-card">
+            <div class="type">Unit Test — Badge Logic</div>
+            <div class="desc">Validates Badge.fromPoints() returns correct enum for boundary values (0, 100, 101, 250,
+              251).</div>
+          </div>
+          <div class="test-card ui">
+            <div class="type">UI Test — Navigation Flow</div>
+            <div class="desc">Clicks "Register" link → asserts Join screen shown → clicks "Login" → asserts Login screen
+              shown.</div>
+          </div>
+          <div class="test-card ui">
+            <div class="type">UI Test — Input Fields</div>
+            <div class="desc">Asserts Email, Password fields and Login button exist on the Login screen.</div>
+          </div>
+        </div>
+        <div class="col-text">
+          <ul class="bullets">
+            <li><strong>JUnit4 + MockK</strong><span class="sub">Unit tests for domain logic.</span></li>
+            <li><strong>Compose Test Rule</strong><span class="sub">UI tests with Hilt injection.</span></li>
+            <li><strong>HiltTestRunner</strong><span class="sub">Custom AndroidJUnit4 runner for DI in tests.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11. ACCESSIBILITY -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Accessibility · Release</div>
+        <div class="slide-title">Accessibility Check &amp; <span>Release Build</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>Content Descriptions</strong><span class="sub">All images, icons, and badges have meaningful
+                contentDescription strings.</span></li>
+            <li><strong>Input Labels</strong><span class="sub">OutlinedTextField with label param — readable by
+                TalkBack.</span></li>
+            <li><strong>Touch Targets</strong><span class="sub">All interactive elements ≥ 48dp via padding or explicit
+                size.</span></li>
+            <li><strong>Color Contrast</strong><span class="sub">White text on dark purple (#6200EE) — passes WCAG AA
+                ratio.</span></li>
+          </ul>
+        </div>
+        <div class="col">
+          <ul class="bullets">
+            <li><strong>App Icon</strong><span class="sub">Custom adaptive icon in mipmap resources.</span></li>
+            <li><strong>Splash Screen</strong><span class="sub">Implemented via androidx.core:core-splashscreen
+                library.</span></li>
+            <li><strong>Versioning</strong><span class="sub">versionCode and versionName set in build.gradle.</span>
+            </li>
+            <li><strong>Signed APK/AAB</strong><span class="sub">Release build signed with keystore via Build → Generate
+                Signed Bundle.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12. END -->
+    <div class="slide end-slide">
+      <div class="slide-body">
+        <div class="app-icon">🎨</div>
+        <div class="end-title">Thank You!</div>
+        <div class="end-sub">Questions & Demo</div>
+        <div class="title-badges" style="margin-top:20px">
+          <div class="badge-pill">Kotlin</div>
+          <div class="badge-pill">Jetpack Compose</div>
+          <div class="badge-pill">Firebase</div>
+          <div class="badge-pill">Google Maps</div>
+          <div class="badge-pill">MVVM</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /deck -->
+
+  <script>
+    let cur = 0;
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+
+    function go(dir) {
+      slides[cur].classList.remove('active');
+      cur = Math.max(0, Math.min(total - 1, cur + dir));
+      slides[cur].classList.add('active');
+      document.getElementById('counter').textContent = (cur + 1) + ' / ' + total;
+      document.getElementById('prog').style.width = ((cur + 1) / total * 100) + '%';
+      document.getElementById('prevBtn').disabled = cur === 0;
+      document.getElementById('nextBtn').disabled = cur === total - 1;
+    }
+
+    function openLB(src) {
+      document.getElementById('lb-img').src = src;
+      document.getElementById('lightbox').classList.add('open');
+    }
+    function closeLB() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeLB();
+      if (document.getElementById('lightbox').classList.contains('open')) return;
+      if (e.key === 'ArrowRight' || e.key === 'Space') go(1);
+      if (e.key === 'ArrowLeft') go(-1);
+    });
+
+    go(0); // init
+  </script>
+</body>
+
+</html>

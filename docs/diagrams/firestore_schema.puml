@@ -1,0 +1,79 @@
+@startuml firestore_schema
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+
+skinparam class {
+  BackgroundColor #16213e
+  BorderColor #03DAC6
+  FontColor #ffffff
+  HeaderBackgroundColor #0f3460
+  HeaderFontColor #03DAC6
+  BorderThickness 2
+  RoundCorner 10
+}
+skinparam arrow {
+  Color #6200EE
+  FontColor #e0e0e0
+}
+
+title <color:#ffffff><size:20>Firestore Database Structure</size></color>
+
+class "Collection: users" as USERS {
+  <color:#03DAC6>Document: {uid}</color>
+  --
+  email : String
+  name : String
+  points : Int
+  badge : String
+}
+
+class "Sub-collection: visited_artworks" as VISITED {
+  <color:#03DAC6>Document: {artworkId}</color>
+  --
+  id : Int
+  title : String
+  artist : String
+  imageId : String
+  visitedAt : Timestamp
+  latitude : Double
+  longitude : Double
+  galleryTitle : String
+  imageUrls : List<String>
+  isVisited : Boolean
+  userId : String
+  userName : String
+}
+
+class "Firebase Storage" as STORAGE {
+  <color:#03DAC6>Path: visits/{uid}/{artId}/{file}</color>
+  --
+  Photo files (JPEG/PNG)
+  -- Referenced by --
+  imageUrls in visited_artworks
+}
+
+class "Firebase Auth" as AUTH {
+  <color:#03DAC6>User Record</color>
+  --
+  uid : String
+  email : String
+  passwordHash (managed by Firebase)
+}
+
+class "AIC REST API\n(Read-only)" as API {
+  <color:#03DAC6>api.artic.edu/api/v1</color>
+  --
+  GET /artworks
+  GET /artworks/{id}
+  GET /artworks/search
+  GET /galleries
+}
+
+AUTH "1" --> "1" USERS : creates profile on register
+USERS "1" *-- "many" VISITED : sub-collection
+VISITED "1" --> "many" STORAGE : imageUrls reference
+API ..> VISITED : data copied on visit
+
+@enduml

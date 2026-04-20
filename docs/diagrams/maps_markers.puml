@@ -1,0 +1,99 @@
+@startuml maps_markers
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+skinparam participant {
+  BackgroundColor #16213e
+  BorderColor #6200EE
+  FontColor #ffffff
+  BorderThickness 2
+}
+skinparam actor {
+  BackgroundColor #16213e
+  BorderColor #03DAC6
+  FontColor #03DAC6
+}
+skinparam arrow {
+  Color #03DAC6
+  FontColor #e0e0e0
+  FontSize 12
+}
+skinparam note {
+  BackgroundColor #0f3460
+  BorderColor #6200EE
+  FontColor #ddd
+}
+skinparam sequenceLifeLineBorderColor #6200EE
+
+title <color:#ffffff><size:20>Google Maps — How Markers Are Placed</size></color>
+
+actor User
+participant "MapScreen\n(Compose)" as MAP
+participant "ArtViewModel" as VM
+participant "ArtRepository" as REPO
+participant "Google Maps\nCompose SDK" as SDK
+participant "AIC API" as API
+participant "Firestore" as FS
+
+User -> MAP: Opens Map tab
+activate MAP
+
+MAP -> MAP: Check ACCESS_FINE_LOCATION\npermission (ContextCompat)
+
+alt Permission NOT granted
+  MAP -> User: rememberLauncherForActivityResult\nshows system permission dialog
+  User -> MAP: Grants permission
+end
+
+MAP -> SDK: GoogleMap(\n  isMyLocationEnabled=true,\n  myLocationButtonEnabled=true\n)
+note over SDK: Blue dot shows\ncurrent GPS/emulated location
+
+MAP -> VM: loadGalleries()
+activate VM
+
+VM -> REPO: getGalleries(page=1)\ngetGalleries(page=2)
+activate REPO
+REPO -> API: GET /galleries?fields=id,title,latitude,longitude
+API --> REPO: List<GalleryData>
+deactivate REPO
+
+VM -> VM: Filter: only galleries\nwith coordinates AND\nhave artworks on display
+VM -> MAP: galleries: StateFlow updated
+deactivate VM
+
+MAP -> MAP: Group galleries by\nrounded coordinates\n(3000x precision)
+
+loop For each gallery cluster
+  MAP -> SDK: Marker(\n  position=LatLng(lat,lng),\n  title=gallery.title,\n  icon=HUE_VIOLET or HUE_AZURE\n)
+  note over SDK
+    Violet = cluster (2+ galleries)
+    Azure = single gallery
+  end note
+end
+
+MAP -> VM: combinedArtState (artworks list)
+activate VM
+VM -> FS: visitedArtworks snapshot listener
+FS --> VM: visited list
+VM -> VM: merge: artwork.is_visited_local = true\nif found in visited list
+VM --> MAP: artworks with visit status
+deactivate VM
+
+loop For each artwork with coordinates
+  MAP -> SDK: Marker(\n  position=LatLng(lat,lng),\n  icon= HUE_GREEN if visited\n        HUE_RED if not visited\n  zIndex=1f\n)
+end
+
+User -> SDK: Clicks artwork marker
+SDK -> MAP: onClick callback
+MAP -> User: navigate("art_detail/{id}")
+
+User -> SDK: Clicks gallery marker
+SDK -> MAP: onClick callback
+MAP -> MAP: selectedCluster = cluster
+MAP -> User: ModalBottomSheet\nwith gallery list
+
+@enduml
