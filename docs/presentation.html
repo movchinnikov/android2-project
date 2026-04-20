@@ -376,6 +376,55 @@
       margin-bottom: 4px
     }
 
+    /* MAP SCREENSHOT GALLERY */
+    .map-shot {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+    .map-shot img {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      object-fit: cover;
+      object-position: top;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: block
+    }
+    .map-placeholder {
+      display: none;
+      flex: 1;
+      min-height: 0;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      background: #0a0a1a;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.3);
+      font-size: 13px;
+      gap: 6px;
+      padding: 16px
+    }
+    .map-placeholder span {
+      font-size: 11px;
+      font-family: monospace;
+      color: #03DAC6;
+      opacity: 0.7
+    }
+    .map-caption {
+      flex: none;
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 0 4px
+    }
+
     /* TITLE SLIDE */
     .title-slide {
       background: linear-gradient(135deg, #0d0d1a 0%, #1a0533 50%, #0d0d1a 100%)
@@ -856,7 +905,39 @@
       </div>
     </div>
 
-    <!-- 7b. VISITED ARTWORKS LOGIC -->
+    <!-- 7b. MAP SCREENSHOTS -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Location Services · Screenshots</div>
+        <div class="slide-title">Map — <span>In Action</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body" style="flex-direction:column; gap:16px">
+        <div style="display:flex; gap:16px; flex:1; min-height:0">
+          <div class="map-shot">
+            <img class="zoomable" src="screenshots/map_overview.png" onclick="openLB(this.src)"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="Map overview">
+            <div class="map-placeholder">📍<br>Map Overview<br><span>map_overview.png</span></div>
+            <div class="map-caption">Map loaded with all gallery markers</div>
+          </div>
+          <div class="map-shot">
+            <img class="zoomable" src="screenshots/map_visited.png" onclick="openLB(this.src)"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="Map visited">
+            <div class="map-placeholder">🟢<br>Visited Markers<br><span>map_visited.png</span></div>
+            <div class="map-caption">Green = visited · Red = not visited</div>
+          </div>
+          <div class="map-shot">
+            <img class="zoomable" src="screenshots/map_bottomsheet.png" onclick="openLB(this.src)"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="Bottom sheet">
+            <div class="map-placeholder">📋<br>Gallery Bottom Sheet<br><span>map_bottomsheet.png</span></div>
+            <div class="map-caption">Tap cluster → ModalBottomSheet with artworks</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7c. VISITED ARTWORKS LOGIC -->
+
     <div class="slide">
       <div class="slide-header">
         <div class="slide-tag">Cloud Persistence · Firestore</div>
