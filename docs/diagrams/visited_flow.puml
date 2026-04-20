@@ -1,0 +1,104 @@
+@startuml visited_flow
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam participant {
+  BackgroundColor #16213e
+  BorderColor #6200EE
+  FontColor #ffffff
+  BorderThickness 2
+}
+skinparam actor {
+  BackgroundColor #16213e
+  BorderColor #03DAC6
+  FontColor #03DAC6
+}
+skinparam arrow {
+  Color #03DAC6
+  FontColor #e0e0e0
+  FontSize 11
+}
+skinparam note {
+  BackgroundColor #0f3460
+  BorderColor #6200EE
+  FontColor #ddd
+}
+skinparam sequenceLifeLineBorderColor #6200EE
+
+title <color:#ffffff><size:18>Visited Artworks — Full Logic Flow</size></color>
+
+actor User
+participant "ArtDetailScreen" as UI
+participant "ArtViewModel" as VM
+participant "VisitedRepository" as REPO
+participant "Firestore DB" as FS
+participant "ArtListScreen" as LIST
+
+== 1. CHECK: Is artwork visited? ==
+
+UI -> VM: LaunchedEffect(artworkId)\nloadVisitedStatus()
+VM -> REPO: isVisited(artworkId)
+REPO -> FS: GET document(artworkId)\n.get().await()
+FS --> REPO: doc.exists() &&\ndoc["isVisited"] == true
+REPO --> VM: Boolean
+VM --> UI: update UI state\n(checkbox / button color)
+
+== 2. MARK AS VISITED ==
+
+User -> UI: Toggle "Mark as Visited"
+UI -> VM: toggleVisited(artwork, isVisited=true)
+VM -> REPO: addVisit(VisitedArtwork)
+note over REPO
+  Data copied from API response
+  to avoid future API calls
+end note
+REPO -> FS: document(artworkId).set(visitedArtwork)
+FS --> REPO: success
+REPO --> VM: done
+VM -> LIST: combinedArtState refreshed\nartwork.is_visited_local = true
+
+== 3. REAL-TIME VISITED LIST ==
+
+LIST -> VM: getVisitsFlow() (on screen open)
+VM -> REPO: getVisitsFlow()
+REPO -> FS: addSnapshotListener\non visited_artworks collection
+note over FS
+  Firestore pushes updates
+  automatically on any change
+end note
+FS --> REPO: snapshot (new data)
+REPO --> VM: callbackFlow { trySend(items) }
+VM --> LIST: visitedList StateFlow\nupdated instantly
+
+== 4. REMOVE VISIT ==
+
+User -> UI: Uncheck "Mark as Visited"
+UI -> VM: toggleVisited(artwork, isVisited=false)
+VM -> REPO: setVisitedStatus(artworkId, false)
+REPO -> FS: document(artworkId).update("isVisited", false)
+VM -> REPO: removeVisitIfNoPhotos(artworkId)
+note over REPO
+  If isVisited=false AND
+  imageUrls is empty →
+  delete document entirely
+end note
+REPO -> FS: document(artworkId).delete()
+
+== 5. VIEW OTHER USERS' VISITS ==
+
+UI -> VM: loadPublicVisits(artworkId)
+VM -> REPO: getPublicVisitsForArtwork(artworkId)
+REPO -> FS: collectionGroup("visited_artworks")\n.whereEqualTo("id", artworkId)
+note over FS
+  collectionGroup queries
+  ALL users' sub-collections
+  at once
+end note
+FS --> REPO: List<VisitedArtwork>\n(from all users)
+REPO --> VM: publicVisits
+VM --> UI: show community photos
+
+@enduml

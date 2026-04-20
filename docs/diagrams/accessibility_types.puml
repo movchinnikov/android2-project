@@ -1,0 +1,72 @@
+@startuml accessibility_types
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+
+skinparam rectangle {
+  BackgroundColor #16213e
+  BorderColor #6200EE
+  FontColor #ffffff
+  BorderThickness 2
+  RoundCorner 12
+}
+skinparam package {
+  BackgroundColor #0a0a2a
+  BorderColor #03DAC6
+  FontColor #03DAC6
+  FontStyle bold
+}
+skinparam arrow {
+  Color #03DAC6
+  FontColor #e0e0e0
+}
+skinparam note {
+  BackgroundColor #0f3460
+  BorderColor #6200EE
+  FontColor #ddd
+}
+
+title <color:#ffffff><size:18>Android Accessibility — Types & Implementation</size></color>
+
+package "Vision Accessibility" {
+  rectangle "TalkBack (Screen Reader)\n—————————————\nReads UI elements aloud\nvia contentDescription" as TALK
+  rectangle "Large Text / Display Size\n—————————————\nsp units scale with system\nfont size setting" as LARGE
+}
+
+package "Motor Accessibility" {
+  rectangle "Touch Target Size\n—————————————\nMin 48x48dp per WCAG 2.1\nAchieved via Modifier.size()\nor padding" as TOUCH
+  rectangle "Switch Access\n—————————————\nKeyboard/switch navigation\nvia focusable semantics" as SWITCH
+}
+
+package "Cognitive Accessibility" {
+  rectangle "Clear Labels\n—————————————\nOutlinedTextField label=\nTextField hint text" as LABELS
+  rectangle "Error States\n—————————————\nInline validation messages\nnear the failing field" as ERROR
+}
+
+package "Colour Accessibility" {
+  rectangle "Contrast Ratio\n—————————————\n#FFFFFF on #6200EE\nRatio > 4.5:1 (WCAG AA)" as CONTRAST
+  rectangle "Not Colour-Only\n—————————————\nIcons + text labels used\nnot just colour to convey info" as COLORONLY
+}
+
+package "Jetpack Compose Semantics Engine" as COMPOSE {
+  rectangle "Semantics Node Tree\n—————————————\nCompose builds a parallel\naccessibility tree used by\nTalkBack & Switch Access" as TREE
+}
+
+TALK --> TREE : reads
+LARGE --> TREE : scales
+TOUCH --> TREE : min size
+SWITCH --> TREE : navigation
+LABELS --> TREE : announces
+ERROR --> TREE : alerts
+CONTRAST --> TREE : visual
+COLORONLY --> TREE : redundancy
+
+note right of TREE
+  In ArtFinder:
+  Image(contentDescription="Artwork image")
+  Icon(contentDescription="Back")
+  Button { semantics { contentDescription = "..." } }
+end note
+
+@enduml

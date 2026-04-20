@@ -1,0 +1,51 @@
+@startuml testing_pyramid
+skinparam backgroundColor #1a1a2e
+skinparam defaultFontColor #e0e0e0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 13
+
+skinparam rectangle {
+  BorderThickness 2
+  RoundCorner 10
+}
+skinparam note {
+  BackgroundColor #0f3460
+  BorderColor #6200EE
+  FontColor #ddd
+}
+
+title <color:#ffffff><size:18>ArtFinder — Testing Strategy</size></color>
+
+rectangle "Unit Tests\n(JVM — fast, no device needed)\n——————————————\nRewardManagerTest:\n  calculatePointsForPhotos(0)  → 0 pts\n  calculatePointsForPhotos(1)  → 10 pts\n  calculatePointsForPhotos(5)  → 10 pts\n  calculatePointsForPhotos(6)  → 20 pts\nBadgeTest:\n  fromPoints(0)    → EXPLORER\n  fromPoints(101)  → CURATOR\n  fromPoints(251)  → ARCHIVIST" as UNIT #16213e {
+}
+
+rectangle "UI Tests — Instrumented\n(Emulator/Device — Hilt injected)\n——————————————\nNavigationTest:\n  login_navigates_to_register:\n    onNodeWithText(\"Don't have account?\").performClick()\n    onNodeWithText(\"Join ArtFinder\").assertExists()\n  register_navigates_to_login:\n    onNodeWithText(\"Already have account?\").performClick()" as UI_TEST #1a1440 {
+}
+
+rectangle "Manual / Demo\n——————————————\nRegister new user\nLog in / Log out\nSearch artworks\nMark as visited\nUpload photo\nCheck badge update\nMap markers visible" as MANUAL #0f3060 {
+}
+
+note right of UNIT
+  Tools: JUnit4 + org.junit.Assert
+  Location: src/test/
+  Run: ./gradlew test
+end note
+
+note right of UI_TEST
+  Tools: ComposeTestRule + HiltAndroidTest
+  HiltTestRunner (custom AndroidJUnit4)
+  HiltTestActivity (debug source set)
+  Location: src/androidTest/
+  Run: ./gradlew connectedAndroidTest
+end note
+
+note right of MANUAL
+  Verified on:
+  Android Emulator API 34
+  Physical device testing
+end note
+
+UNIT -[hidden]-> UI_TEST
+UI_TEST -[hidden]-> MANUAL
+
+@enduml

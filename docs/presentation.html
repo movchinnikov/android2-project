@@ -7,13 +7,56 @@
   <title>ArtFinder — Project Presentation</title>
   <style>
     /* LIGHTBOX */
-    #lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;padding:40px;cursor:zoom-out;backdrop-filter:blur(8px);animation:fadeUp .2s ease}
-    #lightbox.open{display:flex}
-    #lb-img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:10px;box-shadow:0 10px 60px rgba(0,0,0,0.7)}
-    #lb-close{position:fixed;top:20px;right:28px;color:#fff;font-size:32px;cursor:pointer;opacity:0.7;line-height:1}
-    #lb-close:hover{opacity:1}
-    .zoomable{cursor:zoom-in;transition:opacity .2s}
-    .zoomable:hover{opacity:0.85}
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      cursor: zoom-out;
+      backdrop-filter: blur(8px);
+      animation: fadeUp .2s ease
+    }
+
+    #lightbox.open {
+      display: flex
+    }
+
+    #lb-img {
+      max-width: 95vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 10px;
+      box-shadow: 0 10px 60px rgba(0, 0, 0, 0.7)
+    }
+
+    #lb-close {
+      position: fixed;
+      top: 20px;
+      right: 28px;
+      color: #fff;
+      font-size: 32px;
+      cursor: pointer;
+      opacity: 0.7;
+      line-height: 1
+    }
+
+    #lb-close:hover {
+      opacity: 1
+    }
+
+    .zoomable {
+      cursor: zoom-in;
+      transition: opacity .2s
+    }
+
+    .zoomable:hover {
+      opacity: 0.85
+    }
+
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 
     * {
@@ -30,19 +73,19 @@
       align-items: center;
       justify-content: flex-start;
       min-height: 100vh;
-      padding: 30px 20px;
-      gap: 20px
+      padding: 12px 12px 16px;
+      gap: 10px
     }
 
     /* CONTROLS */
     .controls {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 10px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 50px;
-      padding: 10px 20px;
+      padding: 6px 14px;
       backdrop-filter: blur(10px)
     }
 
@@ -50,10 +93,10 @@
       background: linear-gradient(135deg, #6200EE, #9c55f5);
       color: #fff;
       border: none;
-      padding: 10px 28px;
+      padding: 6px 18px;
       border-radius: 30px;
       cursor: pointer;
-      font-size: 15px;
+      font-size: 12px;
       font-weight: 600;
       font-family: 'Inter', sans-serif;
       transition: all .2s;
@@ -61,8 +104,8 @@
     }
 
     .controls button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(98, 0, 238, .4)
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(98, 0, 238, .4)
     }
 
     .controls button:disabled {
@@ -75,16 +118,16 @@
 
     .slide-counter {
       color: rgba(255, 255, 255, 0.5);
-      font-size: 14px;
-      min-width: 60px;
+      font-size: 11px;
+      min-width: 48px;
       text-align: center
     }
 
     /* SLIDE WRAPPER */
     .deck {
       position: relative;
-      width: 960px;
-      height: 560px
+      width: min(1280px, 96vw);
+      height: min(720px, calc(100vh - 80px))
     }
 
     .deck::before {
@@ -130,54 +173,60 @@
 
     /* SLIDE HEADER */
     .slide-header {
-      padding: 20px 36px 0;
+      padding: 28px 48px 0;
       flex-shrink: 0
     }
+
     .slide-tag {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
-      letter-spacing: 2px;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
       color: #03DAC6;
-      margin-bottom: 6px
+      margin-bottom: 8px
     }
+
     .slide-title {
-      font-size: 28px;
+      font-size: 38px;
       font-weight: 800;
       color: #fff;
-      line-height: 1.2
+      line-height: 1.15
     }
+
     .slide-title span {
       background: linear-gradient(90deg, #6200EE, #03DAC6);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent
     }
+
     .divider {
-      width: 50px;
+      width: 60px;
       height: 3px;
       background: linear-gradient(90deg, #6200EE, #03DAC6);
       border-radius: 2px;
-      margin-top: 10px
+      margin-top: 12px
     }
 
     /* SLIDE BODY */
     .slide-body {
       flex: 1;
       min-height: 0;
-      padding: 20px 40px 28px;
+      padding: 24px 48px 36px;
       display: flex;
-      gap: 24px;
+      gap: 28px;
       overflow: hidden
     }
+
     /* Fixed-width text column — 42% of slide body */
     .col-text {
-      flex: 0 0 42%;
-      max-width: 42%;
+      flex: 0 0 44%;
+      max-width: 44%;
       display: flex;
       flex-direction: column;
       justify-content: center;
       overflow: hidden
     }
+
     /* Flexible diagram column */
     .col {
       flex: 1;
@@ -193,18 +242,20 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 12px
+      gap: 16px
     }
+
     .bullets li {
       display: grid;
       grid-template-columns: 10px 1fr;
       grid-template-rows: auto auto;
-      column-gap: 12px;
-      row-gap: 2px;
+      column-gap: 14px;
+      row-gap: 3px;
       align-items: start;
-      color: rgba(255,255,255,0.9);
-      font-size: 15px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 17px;
     }
+
     .bullets li::before {
       content: '';
       grid-column: 1;
@@ -216,20 +267,22 @@
       margin-top: 5px;
       justify-self: center
     }
+
     .bullets li strong {
       grid-column: 2;
       grid-row: 1;
       color: #fff;
-      font-size: 15px;
+      font-size: 21px;
       font-weight: 700;
       line-height: 1.3
     }
+
     .bullets li .sub {
       grid-column: 2;
       grid-row: 2;
-      font-size: 13px;
-      color: rgba(255,255,255,0.55);
-      line-height: 1.45
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.55);
+      line-height: 1.5
     }
 
     /* CODE BLOCK */
@@ -237,11 +290,11 @@
       background: #0a0a1a;
       border: 1px solid rgba(98, 0, 238, .4);
       border-radius: 10px;
-      padding: 16px 20px;
+      padding: 18px 22px;
       font-family: 'Courier New', monospace;
-      font-size: 13px;
+      font-size: 15px;
       color: #e0e0e0;
-      line-height: 1.7;
+      line-height: 1.8;
       overflow: auto
     }
 
@@ -272,10 +325,11 @@
       justify-content: center;
       background: #0a0a1a;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.07);
+      border: 1px solid rgba(255, 255, 255, 0.07);
       overflow: hidden;
       padding: 6px
     }
+
     .diagram-wrap img {
       max-width: 100%;
       max-height: 100%;
@@ -284,33 +338,37 @@
       object-fit: contain;
       display: block
     }
+
     /* SCREENSHOT — small fixed panel */
     .screenshot {
       flex: none;
-      width: 200px;
+      min-width: 300px;
       min-height: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       background: #0a0a1a;
-      border: 1px solid rgba(255,255,255,0.07);
+      border: 1px solid rgba(255, 255, 255, 0.07);
       border-radius: 10px;
       overflow: hidden;
       padding: 6px
     }
+
     .screenshot img {
       max-width: 100%;
       max-height: 100%;
       object-fit: contain;
       display: block
     }
+
     .screenshot .placeholder {
-      color: rgba(255,255,255,0.25);
+      color: rgba(255, 255, 255, 0.25);
       font-size: 11px;
       text-align: center;
       padding: 10px;
       line-height: 1.6
     }
+
     .screenshot .placeholder strong {
       display: block;
       color: #03DAC6;
@@ -492,8 +550,8 @@
 
     /* PROGRESS BAR */
     .progress-bar {
-      width: 960px;
-      height: 3px;
+      width: min(1280px, 96vw);
+      height: 2px;
       background: rgba(255, 255, 255, 0.06);
       border-radius: 2px
     }
@@ -606,7 +664,8 @@
           </ul>
         </div>
         <div class="diagram-wrap">
-          <img class="zoomable" src="diagrams/architecture.png" onclick="openLB(this.src)" alt="MVVM Architecture Diagram">
+          <img class="zoomable" src="diagrams/architecture.png" onclick="openLB(this.src)"
+            alt="MVVM Architecture Diagram">
         </div>
       </div>
     </div>
@@ -651,14 +710,19 @@
       <div class="slide-body">
         <div class="col-text">
           <ul class="bullets">
-            <li><strong>Input Validation</strong><span class="sub">Name, Email, Password validated before sending.</span></li>
-            <li><strong>createUserWithEmailAndPassword()</strong><span class="sub">Firebase creates account — password is hashed, never stored in plain text.</span></li>
-            <li><strong>Profile Auto-Created</strong><span class="sub"><code>saveUserProfile(uid)</code> writes <code>users/{uid}</code> doc with name, email, points: 0.</span></li>
-            <li><strong>Auth State Change</strong><span class="sub">SDK triggers state change → app navigates to Art List automatically.</span></li>
+            <li><strong>Input Validation</strong><span class="sub">Name, Email, Password validated before
+                sending.</span></li>
+            <li><strong>createUserWithEmailAndPassword()</strong><span class="sub">Firebase creates account — password
+                is hashed, never stored in plain text.</span></li>
+            <li><strong>Profile Auto-Created</strong><span class="sub"><code>saveUserProfile(uid)</code> writes
+                <code>users/{uid}</code> doc with name, email, points: 0.</span></li>
+            <li><strong>Auth State Change</strong><span class="sub">SDK triggers state change → app navigates to Art
+                List automatically.</span></li>
           </ul>
         </div>
         <div class="diagram-wrap">
-          <img class="zoomable" src="diagrams/registration_flow.png" onclick="openLB(this.src)" alt="Registration Flow Diagram">
+          <img class="zoomable" src="diagrams/registration_flow.png" onclick="openLB(this.src)"
+            alt="Registration Flow Diagram">
         </div>
       </div>
     </div>
@@ -673,14 +737,19 @@
       <div class="slide-body">
         <div class="col-text">
           <ul class="bullets">
-            <li><strong>signInWithEmailAndPassword()</strong><span class="sub">Firebase verifies credentials server-side, returns <code>FirebaseUser</code>.</span></li>
-            <li><strong>JWT ID Token</strong><span class="sub">Signed token with UID, email, expiry — auto-attached to every Firestore request as Bearer token.</span></li>
-            <li><strong>Auto-refresh</strong><span class="sub">SDK silently renews token every hour, no user interaction required.</span></li>
-            <li><strong>Security Rules</strong><span class="sub">Firestore verifies <code>request.auth.uid</code> from JWT before granting access.</span></li>
+            <li><strong>signInWithEmailAndPassword()</strong><span class="sub">Firebase verifies credentials
+                server-side, returns <code>FirebaseUser</code>.</span></li>
+            <li><strong>JWT ID Token</strong><span class="sub">Signed token with UID, email, expiry — auto-attached to
+                every Firestore request as Bearer token.</span></li>
+            <li><strong>Auto-refresh</strong><span class="sub">SDK silently renews token every hour, no user interaction
+                required.</span></li>
+            <li><strong>Security Rules</strong><span class="sub">Firestore verifies <code>request.auth.uid</code> from
+                JWT before granting access.</span></li>
           </ul>
         </div>
         <div class="diagram-wrap">
-          <img class="zoomable" src="diagrams/login_jwt_flow.png" onclick="openLB(this.src)" alt="Login & JWT Flow Diagram">
+          <img class="zoomable" src="diagrams/login_jwt_flow.png" onclick="openLB(this.src)"
+            alt="Login & JWT Flow Diagram">
         </div>
       </div>
     </div>
@@ -695,17 +764,23 @@
       <div class="slide-body">
         <div class="col">
           <ul class="bullets">
-            <li><strong>Reads from Firestore</strong><span class="sub">On load, <code>ProfileViewModel</code> fetches the user document from <code>users/{uid}</code>.</span></li>
-            <li><strong>Displays Points &amp; Badge</strong><span class="sub">Total accumulated points and current achievement badge (Explorer / Curator / Archivist) shown with icon.</span></li>
-            <li><strong>Edit Name</strong><span class="sub">Navigates to <code>EditNameScreen</code>, calls <code>UserRepository.updateProfileName()</code> to persist change.</span></li>
-            <li><strong>Leaderboard Link</strong><span class="sub">Navigates to <code>LeaderboardScreen</code> which reads all users from Firestore and ranks them by points.</span></li>
-            <li><strong>Logout</strong><span class="sub">Calls <code>FirebaseAuth.signOut()</code>, clears state and navigates back to Login.</span></li>
+            <li><strong>Reads from Firestore</strong><span class="sub">On load, <code>ProfileViewModel</code> fetches
+                the user document from <code>users/{uid}</code>.</span></li>
+            <li><strong>Displays Points &amp; Badge</strong><span class="sub">Total accumulated points and current
+                achievement badge (Explorer / Curator / Archivist) shown with icon.</span></li>
+            <li><strong>Edit Name</strong><span class="sub">Navigates to <code>EditNameScreen</code>, calls
+                <code>UserRepository.updateProfileName()</code> to persist change.</span></li>
+            <li><strong>Leaderboard Link</strong><span class="sub">Navigates to <code>LeaderboardScreen</code> which
+                reads all users from Firestore and ranks them by points.</span></li>
+            <li><strong>Logout</strong><span class="sub">Calls <code>FirebaseAuth.signOut()</code>, clears state and
+                navigates back to Login.</span></li>
           </ul>
         </div>
         <div class="screenshot">
           <img class="zoomable" src="screenshots/profile_screen.png" onclick="openLB(this.src)"
             onerror="this.style.display='none';this.nextElementSibling.style.display='block'" alt="Profile Screen">
-          <div class="placeholder" style="display:none"><strong>📸 Screenshot needed</strong>docs/screenshots/profile_screen.png<br><br>Profile screen with badge + points</div>
+          <div class="placeholder" style="display:none"><strong>📸 Screenshot
+              needed</strong>docs/screenshots/profile_screen.png<br><br>Profile screen with badge + points</div>
         </div>
       </div>
     </div>
@@ -734,15 +809,21 @@
       <div class="slide-body">
         <div class="col-text">
           <ul class="bullets">
-            <li><strong>Interface → Proxy</strong><span class="sub">Retrofit generates a dynamic proxy at runtime that implements your <code>ArtApiService</code> interface.</span></li>
-            <li><strong>OkHttp Transport</strong><span class="sub">Actual HTTP connection, connection pooling, disk cache, and logging interceptors.</span></li>
-            <li><strong>Coroutines Adapter</strong><span class="sub"><code>suspend</code> functions run on IO thread — result delivered on Main thread safely.</span></li>
-            <li><strong>Gson Converter</strong><span class="sub">JSON field <code>"artist_display"</code> maps to Kotlin <code>artist_display: String?</code> automatically.</span></li>
-            <li><strong>Pagination</strong><span class="sub"><code>?page=1&limit=20</code> query params via <code>@Query</code> annotations.</span></li>
+            <li><strong>Interface → Proxy</strong><span class="sub">Retrofit generates a dynamic proxy at runtime that
+                implements your <code>ArtApiService</code> interface.</span></li>
+            <li><strong>OkHttp Transport</strong><span class="sub">Actual HTTP connection, connection pooling, disk
+                cache, and logging interceptors.</span></li>
+            <li><strong>Coroutines Adapter</strong><span class="sub"><code>suspend</code> functions run on IO thread —
+                result delivered on Main thread safely.</span></li>
+            <li><strong>Gson Converter</strong><span class="sub">JSON field <code>"artist_display"</code> maps to Kotlin
+                <code>artist_display: String?</code> automatically.</span></li>
+            <li><strong>Pagination</strong><span class="sub"><code>?page=1&limit=20</code> query params via
+                <code>@Query</code> annotations.</span></li>
           </ul>
         </div>
         <div class="diagram-wrap">
-          <img class="zoomable" src="diagrams/retrofit_internals.png" onclick="openLB(this.src)" alt="Retrofit Internals">
+          <img class="zoomable" src="diagrams/retrofit_internals.png" onclick="openLB(this.src)"
+            alt="Retrofit Internals">
         </div>
       </div>
     </div>
@@ -757,11 +838,16 @@
       <div class="slide-body">
         <div class="col-text">
           <ul class="bullets">
-            <li><strong>Runtime Permissions</strong><span class="sub"><code>rememberLauncherForActivityResult</code> requests <code>ACCESS_FINE_LOCATION</code> on map open.</span></li>
-            <li><strong>Gallery Markers</strong><span class="sub">Loaded from AIC API <code>/galleries</code>, filtered to those with coordinates.</span></li>
-            <li><strong>Marker Colors</strong><span class="sub">🟢 Green = visited, 🔴 Red = not visited, 🟣 Violet = gallery cluster, 🔵 Azure = single gallery.</span></li>
-            <li><strong>Clustering</strong><span class="sub">Nearby galleries grouped by rounded coordinates (×3000 precision).</span></li>
-            <li><strong>Bottom Sheet</strong><span class="sub">Tap gallery cluster → <code>ModalBottomSheet</code> with list and thumbnails.</span></li>
+            <li><strong>Runtime Permissions</strong><span class="sub"><code>rememberLauncherForActivityResult</code>
+                requests <code>ACCESS_FINE_LOCATION</code> on map open.</span></li>
+            <li><strong>Gallery Markers</strong><span class="sub">Loaded from AIC API <code>/galleries</code>, filtered
+                to those with coordinates.</span></li>
+            <li><strong>Marker Colors</strong><span class="sub">🟢 Green = visited, 🔴 Red = not visited, 🟣 Violet =
+                gallery cluster, 🔵 Azure = single gallery.</span></li>
+            <li><strong>Clustering</strong><span class="sub">Nearby galleries grouped by rounded coordinates (×3000
+                precision).</span></li>
+            <li><strong>Bottom Sheet</strong><span class="sub">Tap gallery cluster → <code>ModalBottomSheet</code> with
+                list and thumbnails.</span></li>
           </ul>
         </div>
         <div class="diagram-wrap">
@@ -770,7 +856,36 @@
       </div>
     </div>
 
+    <!-- 7b. VISITED ARTWORKS LOGIC -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Cloud Persistence · Firestore</div>
+        <div class="slide-title">Visited Artworks — <span>Full Logic</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col-text">
+          <ul class="bullets">
+            <li><strong>Check Status</strong><span class="sub"><code>isVisited(artworkId)</code> checks Firestore doc
+                existence + <code>isVisited == true</code> field on detail screen open.</span></li>
+            <li><strong>Add Visit</strong><span class="sub"><code>addVisit()</code> copies API data (title, artist,
+                coordinates, timestamp) into sub-collection. No API call needed again.</span></li>
+            <li><strong>Real-time Flow</strong><span class="sub"><code>callbackFlow + addSnapshotListener</code> —
+                Firestore pushes changes instantly, list updates without polling.</span></li>
+            <li><strong>Smart Delete</strong><span class="sub">If artwork unmarked AND has no photos → document deleted
+                entirely from Firestore via <code>removeVisitIfNoPhotos()</code>.</span></li>
+            <li><strong>Community Visits</strong><span class="sub"><code>collectionGroup("visited_artworks")</code>
+                fetches visits from ALL users for the same artwork.</span></li>
+          </ul>
+        </div>
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/visited_flow.png" onclick="openLB(this.src)" alt="Visited Flow Diagram">
+        </div>
+      </div>
+    </div>
+
     <!-- 8. CAMERA & STORAGE -->
+
     <div class="slide">
       <div class="slide-header">
         <div class="slide-tag">Camera · Firebase Storage</div>
@@ -830,76 +945,131 @@
       </div>
     </div>
 
-    <!-- 10. TESTING -->
+    <!-- 10a. TESTING STRATEGY -->
     <div class="slide">
       <div class="slide-header">
-        <div class="slide-tag">App Testing</div>
-        <div class="slide-title">Unit &amp; UI <span>Tests</span></div>
+        <div class="slide-tag">Quality Assurance</div>
+        <div class="slide-title">Testing — <span>Strategy &amp; Process</span></div>
         <div class="divider"></div>
       </div>
       <div class="slide-body">
-        <div class="col">
-          <div class="test-card">
-            <div class="type">Unit Test — RewardManager</div>
-            <div class="desc">Verifies point calculation: 1-5 photos → 10pts, 6-10 photos → 20pts, 0 photos → 0pts.
-            </div>
-          </div>
-          <div class="test-card">
-            <div class="type">Unit Test — Badge Logic</div>
-            <div class="desc">Validates Badge.fromPoints() returns correct enum for boundary values (0, 100, 101, 250,
-              251).</div>
-          </div>
-          <div class="test-card ui">
-            <div class="type">UI Test — Navigation Flow</div>
-            <div class="desc">Clicks "Register" link → asserts Join screen shown → clicks "Login" → asserts Login screen
-              shown.</div>
-          </div>
-          <div class="test-card ui">
-            <div class="type">UI Test — Input Fields</div>
-            <div class="desc">Asserts Email, Password fields and Login button exist on the Login screen.</div>
-          </div>
-        </div>
         <div class="col-text">
           <ul class="bullets">
-            <li><strong>JUnit4 + MockK</strong><span class="sub">Unit tests for domain logic.</span></li>
-            <li><strong>Compose Test Rule</strong><span class="sub">UI tests with Hilt injection.</span></li>
-            <li><strong>HiltTestRunner</strong><span class="sub">Custom AndroidJUnit4 runner for DI in tests.</span>
-            </li>
+            <li><strong>Unit Tests (JVM)</strong><span class="sub">Run on the JVM — no emulator needed, instant
+                feedback. Test pure business logic: points calculation, badge boundaries.</span></li>
+            <li><strong>Instrumented UI Tests</strong><span class="sub">Run on emulator/device via
+                <code>connectedAndroidTest</code>. Use <code>ComposeTestRule</code> to interact with real Compose
+                UI.</span></li>
+            <li><strong>Hilt in Tests</strong><span class="sub"><code>HiltTestRunner</code> replaces the default runner
+                — starts <code>HiltTestApplication</code> which enables DI injection in test classes annotated with
+                <code>@HiltAndroidTest</code>.</span></li>
+            <li><strong>HiltTestActivity</strong><span class="sub">A debug-only empty Activity that acts as the host for
+                Compose content during UI tests, avoiding the need to launch the full app.</span></li>
+            <li><strong>Run Commands</strong><span class="sub"><code>./gradlew test</code> for unit tests ·
+                <code>./gradlew connectedAndroidTest</code> for UI tests.</span></li>
           </ul>
+        </div>
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/testing_pyramid.png" onclick="openLB(this.src)" alt="Testing Strategy">
         </div>
       </div>
     </div>
 
-    <!-- 11. ACCESSIBILITY -->
+    <!-- 10b. TESTING CODE EXAMPLES -->
     <div class="slide">
       <div class="slide-header">
-        <div class="slide-tag">Accessibility · Release</div>
-        <div class="slide-title">Accessibility Check &amp; <span>Release Build</span></div>
+        <div class="slide-tag">Quality Assurance · Code</div>
+        <div class="slide-title">Test <span>Examples from Code</span></div>
         <div class="divider"></div>
       </div>
       <div class="slide-body">
-        <div class="col">
+        <div class="col-text">
           <ul class="bullets">
-            <li><strong>Content Descriptions</strong><span class="sub">All images, icons, and badges have meaningful
-                contentDescription strings.</span></li>
-            <li><strong>Input Labels</strong><span class="sub">OutlinedTextField with label param — readable by
-                TalkBack.</span></li>
-            <li><strong>Touch Targets</strong><span class="sub">All interactive elements ≥ 48dp via padding or explicit
-                size.</span></li>
-            <li><strong>Color Contrast</strong><span class="sub">White text on dark purple (#6200EE) — passes WCAG AA
-                ratio.</span></li>
+            <li><strong>RewardManagerTest</strong><span
+                class="sub"><code>calculatePointsForPhotos(0) == 0</code><br><code>calculatePointsForPhotos(5) == 10</code><br><code>calculatePointsForPhotos(6) == 20</code></span>
+            </li>
+            <li><strong>BadgeTest</strong><span class="sub">Boundary values: <code>fromPoints(0) → EXPLORER</code>,
+                <code>fromPoints(101) → CURATOR</code>, <code>fromPoints(251) → ARCHIVIST</code></span></li>
+            <li><strong>NavigationTest (UI)</strong><span class="sub">Clicks <code>"Don't have account? Register"</code>
+                → asserts <code>"Join ArtFinder"</code> exists on screen.</span></li>
+            <li><strong>Hilt Setup</strong><span class="sub"><code>@HiltAndroidTest</code> +
+                <code>HiltAndroidRule</code> + <code>createAndroidComposeRule&lt;HiltTestActivity&gt;()</code></span>
+            </li>
           </ul>
         </div>
-        <div class="col">
+        <div class="screenshot">
+          <img class="zoomable" src="screenshots/10_testing.png" onclick="openLB(this.src)"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block'" alt="Test Results">
+          <div class="placeholder" style="display:none"><strong>📸 Screenshot
+              needed</strong>screenshots/10_testing.png<br><br>Android Studio test results panel showing green
+            checkmarks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11a. ACCESSIBILITY TYPES -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Accessibility · Android</div>
+        <div class="slide-title">Accessibility — <span>Types &amp; How They Work</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col-text">
           <ul class="bullets">
-            <li><strong>App Icon</strong><span class="sub">Custom adaptive icon in mipmap resources.</span></li>
-            <li><strong>Splash Screen</strong><span class="sub">Implemented via androidx.core:core-splashscreen
-                library.</span></li>
-            <li><strong>Versioning</strong><span class="sub">versionCode and versionName set in build.gradle.</span>
-            </li>
-            <li><strong>Signed APK/AAB</strong><span class="sub">Release build signed with keystore via Build → Generate
-                Signed Bundle.</span></li>
+            <li><strong>TalkBack (Vision)</strong><span class="sub">Screen reader built into Android. Reads every UI
+                element aloud using <code>contentDescription</code> from the Compose Semantics tree. Blind users
+                navigate by swiping.</span></li>
+            <li><strong>Touch Targets (Motor)</strong><span class="sub">WCAG 2.1 requires ≥ 48×48dp for all interactive
+                elements. In Compose: <code>Modifier.size(48.dp)</code> or <code>.padding()</code> to inflate tap
+                area.</span></li>
+            <li><strong>Color Contrast (Vision)</strong><span class="sub">WCAG AA: text contrast ≥ 4.5:1. White (#FFF)
+                on our purple (#6200EE) achieves ~5.9:1 — passes.</span></li>
+            <li><strong>Text Scaling (Vision)</strong><span class="sub">Using <code>sp</code> units (not
+                <code>dp</code>) for fonts allows text to scale with the system "Font Size" setting without breaking
+                layouts.</span></li>
+            <li><strong>Semantics (All)</strong><span class="sub">Compose builds a parallel <em>Semantics Node Tree</em>
+                used by TalkBack, Switch Access, and UI test framework alike.</span></li>
           </ul>
+        </div>
+        <div class="diagram-wrap">
+          <img class="zoomable" src="diagrams/accessibility_types.png" onclick="openLB(this.src)"
+            alt="Accessibility Types Diagram">
+        </div>
+      </div>
+    </div>
+
+    <!-- 11b. ACCESSIBILITY IN ARTFINDER -->
+    <div class="slide">
+      <div class="slide-header">
+        <div class="slide-tag">Accessibility · Implementation</div>
+        <div class="slide-title">Accessibility in <span>ArtFinder</span></div>
+        <div class="divider"></div>
+      </div>
+      <div class="slide-body">
+        <div class="col-text">
+          <ul class="bullets">
+            <li><strong>contentDescription on Images</strong><span
+                class="sub"><code>AsyncImage(contentDescription = artwork.title)</code> — TalkBack announces artwork
+                name instead of "image".</span></li>
+            <li><strong>Icon Buttons</strong><span
+                class="sub"><code>IconButton { Icon(contentDescription = "Back") }</code> — navigation icons have
+                meaningful labels for screen readers.</span></li>
+            <li><strong>TextField Labels</strong><span
+                class="sub"><code>OutlinedTextField(label = { Text("Email") })</code> — label stays visible; TalkBack
+                reads it as field hint.</span></li>
+            <li><strong>Error Messages</strong><span class="sub">Validation errors shown inline below the field — not
+                just red color, always accompanied by text.</span></li>
+            <li><strong>Layout Inspector</strong><span class="sub">Verified with Android Studio's Accessibility Scanner:
+                no missing descriptions, sufficient touch targets.</span></li>
+          </ul>
+        </div>
+        <div class="screenshot">
+          <img class="zoomable" src="screenshots/11_accessibility.png" onclick="openLB(this.src)"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block'" alt="Accessibility check">
+          <div class="placeholder" style="display:none"><strong>📸 Screenshot
+              needed</strong>screenshots/11_accessibility.png<br><br>Accessibility Scanner result or TalkBack active on
+            any screen</div>
         </div>
       </div>
     </div>
